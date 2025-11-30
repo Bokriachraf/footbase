@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://trk-two.vercel.app
+
+# Sitemaps
+Sitemap: https://trk-two.vercel.app/sitemap.xml

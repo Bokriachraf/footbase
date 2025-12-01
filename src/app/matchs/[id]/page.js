@@ -245,7 +245,7 @@ export default function MatchDetailPage() {
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="font-semibold text-white text-lg">
-                              {j.nom || 'Joueur inconnu'}
+                              {j.name || 'Joueur inconnu'}
                             </p>
                             <p className="text-green-200 text-sm">
                               {j.position || 'Non précisé'}

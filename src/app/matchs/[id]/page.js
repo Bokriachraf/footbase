@@ -105,13 +105,13 @@ export default function MatchDetailPage() {
     }
   };
 
-  const handleEvaluateClick = () => {
-    if (match?.statut !== "Terminé") {
-      setShowModal(true);
-    } else {
-      router.push(`/matchs/${match._id}/evaluate`);
-    }
-  };
+  // const handleEvaluateClick = () => {
+  //   if (match?.statut !== "Terminé") {
+  //     setShowModal(true);
+  //   } else {
+  //     router.push(`/matchs/${match._id}/evaluate`);
+  //   }
+  // };
 
   return (
     <StadiumBackground>
@@ -274,6 +274,7 @@ export default function MatchDetailPage() {
 
 
             {/* Boutons */}
+            {footballeurInfo && (
             <motion.section className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
 
               <motion.button
@@ -290,14 +291,32 @@ export default function MatchDetailPage() {
               >
                 {isUserJoined() ? '✅ Déjà inscrit' : isMatchFull() ? '⛔ Match complet' : '⚽ Rejoindre'}
               </motion.button>
-
-              <motion.button
+<motion.button
+  whileHover={{ scale: match.statut === "Terminé" ? 1.05 : 1 }}
+  whileTap={{ scale: match.statut === "Terminé" ? 0.95 : 1 }}
+  disabled={match.statut !== "Terminé"}
+  onClick={() => {
+    if (match.statut === "Terminé") {
+      router.push(`/matchs/${match._id}/evaluate`);
+    } else {
+      toast.warning("⛔ L'évaluation sera disponible une fois le match terminé.");
+    }
+  }}
+  className={`px-6 py-4 rounded-2xl font-bold shadow-2xl transition-all duration-300 flex items-center gap-2 ${
+    match.statut !== "Terminé"
+      ? "bg-gray-600 text-gray-300 cursor-not-allowed"
+      : "bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white"
+  }`}
+>
+  ⭐ Évaluer le match
+</motion.button>
+              {/* <motion.button
                 onClick={handleEvaluateClick}
                 whileHover={{ scale: match?.statut === "Terminé" ? 1.07 : 1 }}
                 className="px-8 py-4 rounded-2xl font-bold bg-gradient-to-r from-yellow-300 to-yellow-500 text-black shadow-xl"
               >
                 ⭐ Évaluer le match
-              </motion.button>
+              </motion.button> */}
 
               <motion.button
                 onClick={() => router.push('/matchs')}
@@ -307,7 +326,7 @@ export default function MatchDetailPage() {
                 ⬅️ Retour
               </motion.button>
             </motion.section>
-
+)}
           </div>
         )}
       </motion.div>

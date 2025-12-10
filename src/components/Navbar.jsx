@@ -145,9 +145,9 @@ export default function Navbar() {
           )}
 
           {isOwner && (
-            <Link href="/proprietaire/dashboard" className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-blue-500/20">
+            <Link href={`/proprietaire/${user._id}`} className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-blue-500/20">
               <User size={18} className="text-blue-400" />
-              Mes Terrains
+              Dashboard
             </Link>
           )}
 

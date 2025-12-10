@@ -7,6 +7,11 @@ const matchSchema = new mongoose.Schema({
     ref: "Terrain", // on relie au terrain directement
     required: true,
   },
+   proprietaire: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Proprietaire",
+    required: true,
+  },
   joueurs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Footballeur" }],
   date: { type: String, required: true },
   heure: { type: String, required: true },

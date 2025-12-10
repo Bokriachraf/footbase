@@ -30,6 +30,10 @@ import {
   matchListReducer,
   matchJoinReducer,
   matchDetailsReducer,
+  matchListMyReducer,
+  matchUpdateReducer, 
+  matchDeleteReducer,
+
 } from './reducers/matchReducers.js';
 
 import { notificationReducer } from "./reducers/notificationReducer";
@@ -67,6 +71,9 @@ export function makeStore(preloadedState = {}) {
       matchList: matchListReducer,
       matchJoin: matchJoinReducer,
       matchDetails: matchDetailsReducer,
+      matchListMy: matchListMyReducer,
+      matchUpdate: matchUpdateReducer,
+      matchDelete: matchDeleteReducer,
 
       evaluationCreate: evaluationCreateReducer,
       notifications: notificationReducer,
@@ -78,23 +85,3 @@ export function makeStore(preloadedState = {}) {
 
 
 
-
-// import { configureStore } from '@reduxjs/toolkit'
-// import {  footballeurRegisterReducer,footballeurSigninReducer,footballeurDeleteReducer,footballeurListReducer  } from './reducers/footballeurReducers';
-
-// import {
-//   footballeurUpdateReducer,
-// } from './reducers/footballeurReducers.js'
-// export function makeStore(preloadedState = {}) {
-//   return configureStore({
-//     reducer: {
-      
-//       footballeurSignin: footballeurSigninReducer,
-//       footballeurRegister: footballeurRegisterReducer,
-//       footballeurList: footballeurListReducer,
-//       footballeurDelete: footballeurDeleteReducer,
-//       footballeurUpdate: footballeurUpdateReducer,
-//     },
-//     preloadedState,
-//   });
-// }

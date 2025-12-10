@@ -30,6 +30,7 @@ matchRouter.post(
       niveau,
       prixParJoueur,
       statut: "Ouvert",
+      proprietaire: req.user._id,
     });
 
     const createdMatch = await match.save();
@@ -47,6 +48,20 @@ matchRouter.get(
     res.send(matchs);
   })
 );
+
+// 🟢 Matchs du propriétaire connecté
+matchRouter.get(
+  "/mine",
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const matchs = await Match.find({ proprietaire: req.user._id })
+      .populate("terrain")
+      .populate("joueurs");
+
+    res.send(matchs);
+  })
+);
+
 
 matchRouter.get(
   "/:id",
@@ -150,6 +165,8 @@ matchRouter.put(
   })
 );
 
+
+
 matchRouter.put(
   "/:id/terminer",
   isAuth,
@@ -240,6 +257,85 @@ matchRouter.get("/:id/classement", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+
+// PUT update match (propriétaire propriétaire du match)
+matchRouter.put(
+  "/:id",
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const matchId = req.params.id;
+    const { terrainId, date, heure, niveau, prixParJoueur, statut } = req.body;
+
+    const match = await Match.findById(matchId);
+    if (!match) {
+      return res.status(404).json({ message: "Match non trouvé" });
+    }
+
+    // Vérifier que le propriétaire du match est bien celui connecté
+    if (!match.proprietaire || match.proprietaire.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Accès refusé — vous n'êtes pas le propriétaire de ce match" });
+    }
+
+    if (terrainId) {
+      const terrain = await Terrain.findById(terrainId);
+      if (!terrain) return res.status(404).json({ message: "Terrain non trouvé" });
+      match.terrain = terrain._id;
+    }
+    if (date !== undefined) match.date = date;
+    if (heure !== undefined) match.heure = heure;
+    if (niveau !== undefined) match.niveau = niveau;
+    if (prixParJoueur !== undefined) match.prixParJoueur = prixParJoueur;
+    if (statut !== undefined) match.statut = statut;
+
+    const updated = await match.save();
+    // populate useful fields before returning
+    const populated = await Match.findById(updated._id).populate("terrain");
+    res.json(populated);
+  })
+);
+
+
+// 🗑️ Supprimer un match (uniquement par son propriétaire)
+matchRouter.delete(
+  "/:id",
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const matchId = req.params.id;
+
+    const match = await Match.findById(matchId);
+    if (!match) {
+      return res.status(404).send({ message: "Match introuvable" });
+    }
+
+    // Sécurité : seul le propriétaire peut supprimer
+    if (match.proprietaire.toString() !== req.user._id.toString()) {
+      return res.status(403).send({ message: "Accès refusé" });
+    }
+
+    await Match.findByIdAndDelete(matchId);
+
+    res.send({ message: "Match supprimé avec succès" });
+  })
+);
+
+
+// DELETE a match (propriétaire)
+// matchRouter.delete(
+//   "/:id",
+//   isAuth,
+//   expressAsyncHandler(async (req, res) => {
+//     const match = await Match.findById(req.params.id);
+//     if (!match) return res.status(404).json({ message: "Match non trouvé" });
+
+//     if (!match.proprietaire || match.proprietaire.toString() !== req.user._id.toString()) {
+//       return res.status(403).json({ message: "Accès refusé — vous n'êtes pas le propriétaire de ce match" });
+//     }
+
+//     await match.remove();
+//     res.json({ message: "Match supprimé avec succès" });
+//   })
+// );
 
 
 

@@ -11,9 +11,15 @@ import {
   MATCH_JOIN_REQUEST,
   MATCH_JOIN_SUCCESS,
   MATCH_JOIN_FAIL,
-  //  MATCH_RATE_REQUEST,
-  // MATCH_RATE_SUCCESS,
-  // MATCH_RATE_FAIL,
+  MATCH_LIST_MY_REQUEST,
+  MATCH_LIST_MY_SUCCESS,
+  MATCH_LIST_MY_FAIL,
+   MATCH_UPDATE_REQUEST,
+  MATCH_UPDATE_SUCCESS,
+  MATCH_UPDATE_FAIL,
+  MATCH_DELETE_REQUEST,
+  MATCH_DELETE_SUCCESS,
+  MATCH_DELETE_FAIL,
 } from "../constants/matchConstants";
 
 export const matchCreateReducer = (state = {}, action) => {
@@ -68,15 +74,48 @@ export const matchJoinReducer = (state = {}, action) => {
   }
 };
 
-// export const matchRateReducer = (state = {}, action) => {
-//   switch (action.type) {
-//     case MATCH_RATE_REQUEST:
-//       return { loading: true };
-//     case MATCH_RATE_SUCCESS:
-//       return { loading: false, success: true };
-//     case MATCH_RATE_FAIL:
-//       return { loading: false, error: action.payload };
-//     default:
-//       return state;
-//   }
-// };
+export const matchListMyReducer = (state = { matchs: [] }, action) => {
+  switch (action.type) {
+    case MATCH_LIST_MY_REQUEST:
+      return { loading: true };
+
+    case MATCH_LIST_MY_SUCCESS:
+      return { loading: false, matchs: action.payload };
+
+    case MATCH_LIST_MY_FAIL:
+      return { loading: false, error: action.payload };
+
+    default:
+      return state;
+  }
+};
+
+
+ 
+
+
+export const matchUpdateReducer = (state = {}, action) => {
+  switch (action.type) {
+    case MATCH_UPDATE_REQUEST:
+      return { loading: true };
+    case MATCH_UPDATE_SUCCESS:
+      return { loading: false, success: true, match: action.payload };
+    case MATCH_UPDATE_FAIL:
+      return { loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+export const matchDeleteReducer = (state = {}, action) => {
+  switch (action.type) {
+    case MATCH_DELETE_REQUEST:
+      return { loading: true };
+    case MATCH_DELETE_SUCCESS:
+      return { loading: false, success: true, message: action.payload };
+    case MATCH_DELETE_FAIL:
+      return { loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};

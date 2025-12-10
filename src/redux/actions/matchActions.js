@@ -11,7 +11,16 @@ import {
   MATCH_DETAILS_FAIL,
   MATCH_JOIN_REQUEST,
   MATCH_JOIN_SUCCESS,
-  MATCH_JOIN_FAIL
+  MATCH_JOIN_FAIL,
+  MATCH_LIST_MY_REQUEST,
+  MATCH_LIST_MY_SUCCESS,
+  MATCH_LIST_MY_FAIL,
+  MATCH_UPDATE_REQUEST,
+  MATCH_UPDATE_SUCCESS,
+  MATCH_UPDATE_FAIL,
+  MATCH_DELETE_REQUEST,
+  MATCH_DELETE_SUCCESS,
+  MATCH_DELETE_FAIL,
 } from "../constants/matchConstants";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -65,29 +74,67 @@ export const getMatchDetails = (id) => async (dispatch) => {
   }
 }
 
-// export const joinMatch = (matchId) => async (dispatch, getState) => {
-//   try {
-//     dispatch({ type: MATCH_JOIN_REQUEST });
-//     const {
-//       footballeurSignin: { footballeurInfo },
-//     } = getState();
+export const listMyMatchs = () => async (dispatch, getState) => {
+  try {
+    dispatch({ type: MATCH_LIST_MY_REQUEST });
 
-//     const { data } = await axios.put(
-//       `${API}/api/matchs/${matchId}/join`,
-//       {},
-//       {
-//         headers: { Authorization: `Bearer ${footballeurInfo.token}` },
-//       }
-//     );
+    const { proprietaireSignin: { proprietaireInfo } } = getState();
 
-//     dispatch({ type: MATCH_JOIN_SUCCESS, payload: data });
-//   } catch (error) {
-//     dispatch({
-//       type: MATCH_JOIN_FAIL,
-//       payload:
-//         error.response && error.response.data.message
-//           ? error.response.data.message
-//           : error.message,
-//     });
-//   }
-// };
+    const { data } = await Axios.get(
+      `${API}/api/matchs/mine`,
+      {
+        headers: {
+          Authorization: `Bearer ${proprietaireInfo.token}`,
+        },
+      }
+    );
+
+    dispatch({ type: MATCH_LIST_MY_SUCCESS, payload: data });
+  } catch (error) {
+    dispatch({
+      type: MATCH_LIST_MY_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
+
+export const updateMatch = (matchId, updateData) => async (dispatch, getState) => {
+  try {
+    dispatch({ type: MATCH_UPDATE_REQUEST });
+    const {
+      proprietaireSignin: { proprietaireInfo },
+    } = getState();
+
+    const { data } = await Axios.put(`${API}/api/matchs/${matchId}`, updateData, {
+      headers: { Authorization: `Bearer ${proprietaireInfo.token}` },
+    });
+
+    dispatch({ type: MATCH_UPDATE_SUCCESS, payload: data });
+  } catch (error) {
+    dispatch({
+      type: MATCH_UPDATE_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
+
+// Delete match (owner)
+export const deleteMatch = (matchId) => async (dispatch, getState) => {
+  try {
+    dispatch({ type: MATCH_DELETE_REQUEST });
+    const {
+      proprietaireSignin: { proprietaireInfo },
+    } = getState();
+
+    const { data } = await Axios.delete(`${API}/api/matchs/${matchId}`, {
+      headers: { Authorization: `Bearer ${proprietaireInfo.token}` },
+    });
+
+    dispatch({ type: MATCH_DELETE_SUCCESS, payload: data });
+  } catch (error) {
+    dispatch({
+      type: MATCH_DELETE_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};

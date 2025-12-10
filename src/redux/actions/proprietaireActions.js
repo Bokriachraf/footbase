@@ -11,8 +11,7 @@ import {
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
-// Connexion
-export const signinProprietaire = (email, password) => async (dispatch) => {
+export const signinProprietaire = (email, password, router) => async (dispatch) => {
   try {
     dispatch({ type: PROPRIETAIRE_SIGNIN_REQUEST });
 
@@ -21,14 +20,40 @@ export const signinProprietaire = (email, password) => async (dispatch) => {
     dispatch({ type: PROPRIETAIRE_SIGNIN_SUCCESS, payload: data });
 
     localStorage.setItem("proprietaireInfo", JSON.stringify(data));
+
+    // ⭐ UTILISER data PAS proprietaireInfo
+    router.push(`/proprietaire/${data._id}`);
+
   } catch (error) {
     dispatch({
       type: PROPRIETAIRE_SIGNIN_FAIL,
-      payload:
-        error.response?.data?.message || error.message || "Erreur de connexion",
+      payload: error.response?.data?.message || error.message,
     });
   }
 };
+
+
+
+// Connexion
+// export const signinProprietaire = (email, password, router) => async (dispatch) => {
+//   try {
+//     dispatch({ type: PROPRIETAIRE_SIGNIN_REQUEST });
+
+//     const { data } = await axios.post(`${API}/api/proprietaires/signin`, { email, password });
+
+//     dispatch({ type: PROPRIETAIRE_SIGNIN_SUCCESS, payload: data });
+
+//     localStorage.setItem("proprietaireInfo", JSON.stringify(data));
+//   router.push(`/proprietaire/${proprietaireInfo._id}`)
+
+//   } catch (error) {
+//     dispatch({
+//       type: PROPRIETAIRE_SIGNIN_FAIL,
+//       payload:
+//         error.response?.data?.message || error.message || "Erreur de connexion",
+//     });
+//   }
+// };
 
 // Inscription
 export const proprietaireRegister = (data, router) => async (dispatch) => {
@@ -50,8 +75,8 @@ export const proprietaireRegister = (data, router) => async (dispatch) => {
     dispatch({ type: PROPRIETAIRE_SIGNIN_SUCCESS, payload: proprietaireData });
 
     localStorage.setItem("proprietaireInfo", JSON.stringify(proprietaireData));
-
-    router.push("/proprietaire/dashboard");
+router.push(`/proprietaire/${proprietaireInfo._id}`)
+    // router.push("/proprietaire/:id");
   } catch (error) {
     dispatch({
       type: PROPRIETAIRE_REGISTER_FAIL,

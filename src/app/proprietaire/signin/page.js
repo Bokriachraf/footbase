@@ -21,13 +21,15 @@ export default function ProprietaireSigninPage() {
 
   useEffect(() => {
     if (proprietaireInfo) {
-      router.push("/proprietaire/dashboard");
+      // router.push("/proprietaire/dashboard");
+    router.push(`/proprietaire/${proprietaireInfo._id}`);
+
     }
   }, [proprietaireInfo, router]);
 
   const submitHandler = (e) => {
     e.preventDefault();
-    dispatch(signinProprietaire(email, password));
+    dispatch(signinProprietaire(email, password, router));
   };
 
   return (

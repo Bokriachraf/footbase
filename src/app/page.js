@@ -528,7 +528,7 @@ export default function HomePage() {
               </motion.button>
             </Link>
 
-            <Link href="/apropos" className="group w-full sm:w-auto z-30">
+            <Link href="/" className="group w-full sm:w-auto z-30">
               <motion.button
                 whileHover={{ 
                   scale: 1.05,

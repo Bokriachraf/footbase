@@ -44,7 +44,7 @@ export default function MatchDetailPage() {
     if (!match || !match.date || !match.heure) return;
 
     const matchDateTime = new Date(`${match.date}T${match.heure}`);
-    const endTime = new Date(matchDateTime.getTime() + 2 * 60 * 60 * 1000);
+    const endTime = new Date(matchDateTime.getTime() + 11 * 60 * 1000);
 
     const interval = setInterval(() => {
       const now = new Date();
@@ -181,7 +181,7 @@ export default function MatchDetailPage() {
               </motion.div>
             )}
             {/* Informations Terrain */}
-            <motion.section className="bg-white/10 p-6 rounded-2xl border border-white/20 shadow-2xl">
+            <motion.section   className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 shadow-2xl">
               <h2 className="text-2xl font-bold text-yellow-300 mb-4">🏟️ Terrain</h2>
               <div className="grid md:grid-cols-2 gap-4 text-white/90">
                 <div className="space-y-3">
@@ -198,7 +198,8 @@ export default function MatchDetailPage() {
             </motion.section>
 
             {/* Informations Match */}
-            <motion.section className="bg-white/10 p-6 rounded-2xl border border-white/20 shadow-2xl">
+            <motion.section className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 shadow-2xl">
+
               <h2 className="text-2xl font-bold text-yellow-300 mb-4">📅 Match</h2>
               <div className="grid md:grid-cols-2 gap-4 text-white/90">
                 <div className="space-y-3">
@@ -271,6 +272,34 @@ export default function MatchDetailPage() {
                 </div>
               )}
             </motion.section>
+
+{match.mode === "INDIVIDUEL" && match.equipes?.length === 2 && (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+    {match.equipes.map((team) => (
+      <div
+        key={team._id}
+        className="bg-black/60 border border-yellow-400/20 rounded-2xl p-4"
+      >
+        <h3 className="text-yellow-400 font-bold mb-3">{team.nom}</h3>
+
+        <ul className="space-y-2">
+          {team.joueurs.map((j) => (
+            <li
+              key={j._id}
+              className="flex justify-between text-white/90"
+            >
+              <span>{j.name}</span>
+              <span className="text-yellow-300">
+                 {j.position}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+)}
+
 
 
             {/* Boutons */}

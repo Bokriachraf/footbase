@@ -1,9 +1,29 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const equipeSchema = new mongoose.Schema({
-  nom: { type: String, required: true }, // "Equipe A" ou "Equipe B"
-  joueurs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Footballeur' }],
-  score: { type: Number, default: 0 },
-});
+const equipeSchema = new mongoose.Schema(
+  {
+    nom: { type: String, required: true },
 
-export default mongoose.model('Equipe', equipeSchema);
+    joueurs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Footballeur",
+        required: true,
+      },
+    ],
+
+    capitaine: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Footballeur",
+    },
+
+    score: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { timestamps: true }
+);
+
+const Equipe = mongoose.model("Equipe", equipeSchema);
+export default Equipe;

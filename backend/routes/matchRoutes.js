@@ -16,7 +16,7 @@ matchRouter.post(
   "/create",
   isAuth,
   expressAsyncHandler(async (req, res) => {
-    const { terrainId, date, heure, niveau, prixParJoueur } = req.body;
+    const { terrainId, date, heure, niveau, mode, prixParJoueur } = req.body;
 
     const terrain = await Terrain.findById(terrainId);
     if (!terrain) {
@@ -28,6 +28,7 @@ matchRouter.post(
       date,
       heure,
       niveau,
+      mode,
       prixParJoueur,
       statut: "Ouvert",
       proprietaire: req.user._id,
@@ -62,30 +63,40 @@ matchRouter.get(
   })
 );
 
-
 matchRouter.get(
   "/:id",
   expressAsyncHandler(async (req, res) => {
     const match = await Match.findById(req.params.id)
       .populate("terrain")
+
+      // joueurs inscrits (logique actuelle conservée)
       .populate({
         path: "joueurs",
         select: "-password",
         populate: {
           path: "evaluations",
-          select: "note"
-        }
+          select: "note",
+        },
+      })
+
+      // ✅ NOUVEAU : équipes + joueurs
+      .populate({
+        path: "equipes",
+        populate: {
+          path: "joueurs",
+          select: "name rating position",
+        },
       });
 
     if (!match) {
       return res.status(404).send({ message: "Match non trouvé" });
     }
 
-    // --- AUTO UPDATE STATUT ---
+    // --- AUTO UPDATE STATUT (inchangé) ---
     try {
       const now = new Date();
       const matchDateTime = new Date(`${match.date} ${match.heure}`);
-      const matchEnd = new Date(matchDateTime.getTime() + 10 * 60 * 1000);
+      const matchEnd = new Date(matchDateTime.getTime() + 5 * 60 * 1000);
 
       if (now > matchEnd && match.statut !== "Terminé") {
         match.statut = "Terminé";
@@ -98,6 +109,46 @@ matchRouter.get(
     res.send(match);
   })
 );
+
+
+
+
+// matchRouter.get(
+//   "/:id",
+//   expressAsyncHandler(async (req, res) => {
+//     const match = await Match.findById(req.params.id)
+//       .populate("terrain")
+//       .populate({
+//         path: "joueurs",
+//         select: "-password",
+//         populate: {
+//           path: "evaluations",
+//           select: "note"
+//         }
+//       });
+      
+
+//     if (!match) {
+//       return res.status(404).send({ message: "Match non trouvé" });
+//     }
+
+//     // --- AUTO UPDATE STATUT ---
+//     try {
+//       const now = new Date();
+//       const matchDateTime = new Date(`${match.date} ${match.heure}`);
+//       const matchEnd = new Date(matchDateTime.getTime() + 5 * 60 * 1000);
+
+//       if (now > matchEnd && match.statut !== "Terminé") {
+//         match.statut = "Terminé";
+//         await match.save();
+//       }
+//     } catch (error) {
+//       console.error("Erreur auto-update statut :", error);
+//     }
+
+//     res.send(match);
+//   })
+// );
 
 
 

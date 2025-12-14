@@ -80,6 +80,7 @@ export default function ProprietairePage() {
   const [newMatchDate, setNewMatchDate] = useState("");
   const [newMatchHeure, setNewMatchHeure] = useState("");
   const [newMatchPrix, setNewMatchPrix] = useState("");
+const [newMatchMode, setNewMatchMode] = useState("INDIVIDUEL");
 
   // edit modal
   const [editOpen, setEditOpen] = useState(false);
@@ -234,6 +235,7 @@ export default function ProprietairePage() {
         date: newMatchDate,
         heure: newMatchHeure,
         prixParJoueur: Number(newMatchPrix || 0),
+        mode: newMatchMode,
       })
     );
 
@@ -243,6 +245,7 @@ export default function ProprietairePage() {
     setNewMatchHeure("");
     setNewMatchPrix("");
     setShowCreateMatch(false);
+    setNewMatchMode("INDIVIDUEL");
     
     dispatch(listMyMatchs());
   };
@@ -438,6 +441,26 @@ export default function ProprietairePage() {
                         className="w-full p-3 rounded-xl bg-white/5 text-white border border-white/20 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/30 outline-none transition-all duration-300 backdrop-blur-sm"
                       />
                     </div>
+
+                    <div>
+  <label className="text-white/80 text-sm mb-1 block">
+    Mode du match
+  </label>
+  <select
+  value={newMatchMode}
+  onChange={(e) => setNewMatchMode(e.target.value)}
+  className="w-full p-3 rounded-xl bg-white/5 text-white border border-white/20 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/30 outline-none transition-all duration-300 backdrop-blur-sm"
+>
+  <option value="INDIVIDUEL" className="text-black">
+    Individuel (équipes auto)
+  </option>
+  <option value="EQUIPE" className="text-black" disabled>
+    Équipe vs Équipe (bientôt)
+  </option>
+</select>
+
+</div>
+
                   </div>
 
                   <div className="flex justify-end gap-3 pt-2">

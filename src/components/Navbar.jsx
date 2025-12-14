@@ -98,7 +98,7 @@ export default function Navbar() {
     <div className="md:hidden flex items-center gap-3 mr-3 ml-4">
       <Link
         href="/signin"
-        className="px-3 py-1.5 bg-blue-500/20 backdrop-blur-sm border border-blue-300/30 rounded-lg text-blue-300 text-xs font-medium hover:bg-blue-500/30 transition-all flex items-center gap-1"
+        className="px-1 py-1.5 bg-blue-500/20 backdrop-blur-sm border border-blue-300/30 rounded-lg text-blue-300 text-xs font-medium hover:bg-blue-500/30 transition-all flex items-center gap-1"
       >
         <span className="text-sm">👟</span>
         <span>Joueur</span>
@@ -106,7 +106,7 @@ export default function Navbar() {
 
       <Link
         href="/proprietaire/signin"
-        className="px-3 py-1.5 bg-green-500/20 backdrop-blur-sm border border-green-300/30 rounded-lg text-green-300 text-xs font-medium hover:bg-green-500/30 transition-all flex items-center gap-1"
+        className="px-1 py-1.5 bg-green-500/20 backdrop-blur-sm border border-green-300/30 rounded-lg text-green-300 text-xs font-medium hover:bg-green-500/30 transition-all flex items-center gap-1"
       >
         <span className="text-sm">⚽</span>
         <span>Partenaire</span>

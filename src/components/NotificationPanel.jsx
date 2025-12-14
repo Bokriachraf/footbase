@@ -289,9 +289,9 @@ export default function NotificationPanel({ open, onClose }) {
                             )}
 
                             <div className="text-xs text-white/50 mt-2">
-                              {n.sourceUser && (n.sourceUser.name || n.sourceUser.nom) && (
+                              {/* {n.sourceUser && (n.sourceUser.name || n.sourceUser.nom) && (
                                 <>Par : {n.sourceUser.name || n.sourceUser.nom} </>
-                              )}
+                              )} */}
                               {n.match && <span className="ml-2">• Match {String(n.match).slice(0, 8)}</span>}
                             </div>
                           </div>

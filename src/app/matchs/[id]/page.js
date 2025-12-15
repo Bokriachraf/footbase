@@ -44,7 +44,7 @@ export default function MatchDetailPage() {
     if (!match || !match.date || !match.heure) return;
 
     const matchDateTime = new Date(`${match.date}T${match.heure}`);
-    const endTime = new Date(matchDateTime.getTime() + 11 * 60 * 1000);
+    const endTime = new Date(matchDateTime.getTime() + 90 * 60 * 1000);
 
     const interval = setInterval(() => {
       const now = new Date();

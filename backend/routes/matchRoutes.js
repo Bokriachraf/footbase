@@ -39,6 +39,71 @@ matchRouter.post(
   })
 );
 
+matchRouter.post(
+  '/:matchId/join-equipe',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const match = await Match.findById(req.params.matchId).populate('equipes');
+
+    if (!match) {
+      return res.status(404).send({ message: 'Match non trouvé' });
+    }
+
+    if (match.mode !== 'EQUIPE') {
+      return res.status(400).send({ message: 'Match non en mode équipe' });
+    }
+
+    // ❌ joueur déjà dans une équipe ?
+    const alreadyInTeam = match.equipes.some(eq =>
+      eq.joueurs.some(j => j.toString() === userId.toString())
+    );
+
+    if (alreadyInTeam) {
+      return res.status(400).send({ message: 'Déjà dans une équipe' });
+    }
+
+    // 🟢 Aucune équipe → capitaine A
+    if (match.equipes.length === 0) {
+      const equipeA = await Equipe.create({
+        nom: 'Équipe A',
+        capitaine: userId,
+        joueurs: [userId],
+      });
+
+      match.equipes.push(equipeA._id);
+      await match.save();
+
+      return res.send({
+        message: 'Vous êtes capitaine de l’Équipe A 👑',
+        equipe: equipeA,
+      });
+    }
+
+    // 🟢 Une seule équipe → capitaine B
+    if (match.equipes.length === 1) {
+      const equipeB = await Equipe.create({
+        nom: 'Équipe B',
+        capitaine: userId,
+        joueurs: [userId],
+      });
+
+      match.equipes.push(equipeB._id);
+      await match.save();
+
+      return res.send({
+        message: 'Vous êtes capitaine de l’Équipe B 👑',
+        equipe: equipeB,
+      });
+    }
+
+    // ❌ Deux capitaines déjà définis
+    return res.status(400).send({
+      message: 'Les deux capitaines sont déjà définis',
+    });
+  })
+);
+
 // 📋 Liste des matchs disponibles
 matchRouter.get(
   "/",
@@ -109,46 +174,6 @@ matchRouter.get(
     res.send(match);
   })
 );
-
-
-
-
-// matchRouter.get(
-//   "/:id",
-//   expressAsyncHandler(async (req, res) => {
-//     const match = await Match.findById(req.params.id)
-//       .populate("terrain")
-//       .populate({
-//         path: "joueurs",
-//         select: "-password",
-//         populate: {
-//           path: "evaluations",
-//           select: "note"
-//         }
-//       });
-      
-
-//     if (!match) {
-//       return res.status(404).send({ message: "Match non trouvé" });
-//     }
-
-//     // --- AUTO UPDATE STATUT ---
-//     try {
-//       const now = new Date();
-//       const matchDateTime = new Date(`${match.date} ${match.heure}`);
-//       const matchEnd = new Date(matchDateTime.getTime() + 5 * 60 * 1000);
-
-//       if (now > matchEnd && match.statut !== "Terminé") {
-//         match.statut = "Terminé";
-//         await match.save();
-//       }
-//     } catch (error) {
-//       console.error("Erreur auto-update statut :", error);
-//     }
-
-//     res.send(match);
-//   })
-// );
 
 
 
@@ -371,22 +396,6 @@ matchRouter.delete(
 );
 
 
-// DELETE a match (propriétaire)
-// matchRouter.delete(
-//   "/:id",
-//   isAuth,
-//   expressAsyncHandler(async (req, res) => {
-//     const match = await Match.findById(req.params.id);
-//     if (!match) return res.status(404).json({ message: "Match non trouvé" });
-
-//     if (!match.proprietaire || match.proprietaire.toString() !== req.user._id.toString()) {
-//       return res.status(403).json({ message: "Accès refusé — vous n'êtes pas le propriétaire de ce match" });
-//     }
-
-//     await match.remove();
-//     res.json({ message: "Match supprimé avec succès" });
-//   })
-// );
 
 
 

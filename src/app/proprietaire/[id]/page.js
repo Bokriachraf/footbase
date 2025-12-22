@@ -454,8 +454,8 @@ const [newMatchMode, setNewMatchMode] = useState("INDIVIDUEL");
   <option value="INDIVIDUEL" className="text-black">
     Individuel (équipes auto)
   </option>
-  <option value="EQUIPE" className="text-black" disabled>
-    Équipe vs Équipe (bientôt)
+  <option value="EQUIPE" className="text-black">
+    Équipe vs Équipe (équipes manuel)
   </option>
 </select>
 

@@ -20,6 +20,9 @@ import {
   MATCH_DELETE_REQUEST,
   MATCH_DELETE_SUCCESS,
   MATCH_DELETE_FAIL,
+  MATCH_JOIN_EQUIPE_REQUEST,
+  MATCH_JOIN_EQUIPE_SUCCESS,
+  MATCH_JOIN_EQUIPE_FAIL,
 } from "../constants/matchConstants";
 
 export const matchCreateReducer = (state = {}, action) => {
@@ -115,6 +118,22 @@ export const matchDeleteReducer = (state = {}, action) => {
       return { loading: false, success: true, message: action.payload };
     case MATCH_DELETE_FAIL:
       return { loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+export const matchJoinEquipeReducer = (state = {}, action) => {
+  switch (action.type) {
+    case MATCH_JOIN_EQUIPE_REQUEST:
+      return { loading: true };
+
+    case MATCH_JOIN_EQUIPE_SUCCESS:
+      return { loading: false, success: true, data: action.payload };
+
+    case MATCH_JOIN_EQUIPE_FAIL:
+      return { loading: false, error: action.payload };
+
     default:
       return state;
   }

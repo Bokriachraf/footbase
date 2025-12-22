@@ -16,6 +16,25 @@ participationRouter.post(
     const match = await Match.findById(req.params.matchId)
       .populate("terrain", "nom ville capacite prixHeure");
 
+if (match.mode === "EQUIPE" && match.equipes.length === 0) {
+  const equipeA = await Equipe.create({
+    nom: "Équipe A",
+    capitaine: req.user._id,
+    joueurs: [req.user._id],
+    match: match._id,
+  });
+
+  const equipeB = await Equipe.create({
+    nom: "Équipe B",
+    joueurs: [],
+    match: match._id,
+  });
+
+  match.equipes = [equipeA._id, equipeB._id];
+  await match.save();
+}
+
+
     if (!match) {
       return res.status(404).send({ message: "Match non trouvé" });
     }
@@ -113,6 +132,8 @@ participationRouter.post(
     });
   })
 );
+
+
 
 export default participationRouter;
 

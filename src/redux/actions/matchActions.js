@@ -20,7 +20,10 @@ import {
   MATCH_UPDATE_FAIL,
   MATCH_DELETE_REQUEST,
   MATCH_DELETE_SUCCESS,
-  MATCH_DELETE_FAIL,
+  MATCH_DELETE_FAIL, 
+  MATCH_JOIN_EQUIPE_REQUEST,
+  MATCH_JOIN_EQUIPE_SUCCESS,
+  MATCH_JOIN_EQUIPE_FAIL,
 } from "../constants/matchConstants";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -135,6 +138,39 @@ export const deleteMatch = (matchId) => async (dispatch, getState) => {
     dispatch({
       type: MATCH_DELETE_FAIL,
       payload: error.response?.data?.message || error.message,
+    });
+  }
+};
+
+export const joinMatchEquipe = (matchId) => async (dispatch, getState) => {
+  try {
+    dispatch({ type: MATCH_JOIN_EQUIPE_REQUEST });
+
+    const {
+      footballeurSignin: { footballeurInfo },
+    } = getState();
+
+    const { data } = await Axios.post(
+      `${API}/api/matchs/${matchId}/join-equipe`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${footballeurInfo.token}`,
+        },
+      }
+    );
+
+    dispatch({
+      type: MATCH_JOIN_EQUIPE_SUCCESS,
+      payload: data, // { message, equipe }
+    });
+  } catch (error) {
+    dispatch({
+      type: MATCH_JOIN_EQUIPE_FAIL,
+      payload:
+        error.response?.data?.message ||
+        error.message ||
+        'Erreur rejoindre équipe',
     });
   }
 };

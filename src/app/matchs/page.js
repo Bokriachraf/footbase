@@ -106,8 +106,15 @@ export default function MatchListPage() {
                       <span className="text-white font-semibold">
                         {m.heure || "Non spécifiée"}
                       </span>
+
                     </div>
-                    
+                       <div className="flex justify-between items-center">
+                      <span className="text-white/70">Mode</span>
+                      <span className="text-blue-300 font-semibold">
+                        {m.mode || "Tous modes"}
+                      </span>
+                    </div>
+
                     <div className="flex justify-between items-center">
                       <span className="text-white/70">Niveau</span>
                       <span className="text-blue-300 font-semibold">
@@ -140,7 +147,11 @@ export default function MatchListPage() {
                   </div>
 
                   {/* Bouton d'action */}
-                  <Link href={`/matchs/${m._id}`}>
+                  <Link  href={
+    m.mode === 'EQUIPE'
+      ? `/matchs/${m._id}/mode`
+      : `/matchs/${m._id}`
+  }>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}

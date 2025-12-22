@@ -12,6 +12,9 @@ import terrainRouter from './routes/terrainRoutes.js';
 import participationRouter from './routes/participationRoutes.js';
 import evaluationRouter from "./routes/evaluationRoutes.js";
 import notificationRouter from "./routes/notificationRoutes.js";
+import equipeRouter from './routes/equipeRoute.js';
+import invitationRouter from './routes/invitationRoutes.js';
+
 
 dotenv.config();
 
@@ -49,6 +52,10 @@ app.use('/api/matchs', matchRouter);
 app.use('/api/participations', participationRouter);
 app.use("/api/evaluations", evaluationRouter);
 app.use("/api/notifications", notificationRouter);
+app.use('/api/equipes', equipeRouter);
+app.use('/api/invitations', invitationRouter);
+
+
 
 // 🟢 Serveur HTTP
 const server = http.createServer(app);

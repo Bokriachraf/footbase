@@ -363,3 +363,732 @@ export default function MatchDetailPage() {
   );
 }
 
+
+
+// 'use client';
+
+// import { useEffect, useState, useRef } from 'react';
+// import { useDispatch, useSelector } from 'react-redux';
+// import { useParams, useRouter } from 'next/navigation';
+// import { getMatchDetails, joinMatch } from '../../../redux/actions/matchActions';
+// import { addPlayerToEquipe } from '../../../redux/actions/equipeActions';
+// import { motion } from 'framer-motion';
+// import { toast } from 'react-toastify';
+// import Loader from '../../../components/Loader';
+// import StadiumBackground from "@/components/StadiumBackground";
+
+// export default function MatchDetailPage() {
+//   const { id } = useParams();
+//   const router = useRouter();
+//   const dispatch = useDispatch();
+
+//   const { match, loading, error } = useSelector(state => state.matchDetails || {});
+//   const { footballeurInfo } = useSelector(state => state.footballeurSignin || {});
+
+//   const [timeLeft, setTimeLeft] = useState(null);
+//   const hasRefreshedStatus = useRef(false);
+
+//   /* ===========================
+//       UTILITAIRES
+//   ============================ */
+
+//   const getFormattedRating = (player) => {
+//     if (!player || !player.averageRating) return "N/A";
+//     const rating = parseFloat(player.averageRating);
+//     return isNaN(rating) ? "N/A" : rating.toFixed(1);
+//   };
+
+//   const isUserJoinedMatch = () => {
+//     if (!match || !footballeurInfo) return false;
+//     return match.joueurs?.some(j =>
+//       (j._id || j).toString() === footballeurInfo._id.toString()
+//     );
+//   };
+
+//   const isUserInEquipe = (equipe) => {
+//     if (!equipe || !footballeurInfo) return false;
+//     return equipe.joueurs?.some(j =>
+//       (j._id || j).toString() === footballeurInfo._id.toString()
+//     );
+//   };
+
+//   /* ===========================
+//       CHARGEMENT MATCH
+//   ============================ */
+
+//   useEffect(() => {
+//     if (id) dispatch(getMatchDetails(id));
+//   }, [dispatch, id]);
+
+//   /* ===========================
+//       TIMER
+//   ============================ */
+
+//   useEffect(() => {
+//     if (!match?.date || !match?.heure) return;
+
+//     const start = new Date(`${match.date}T${match.heure}`);
+//     const end = new Date(start.getTime() + 90 * 60 * 1000);
+
+//     const interval = setInterval(() => {
+//       const diff = end - new Date();
+
+//       if (diff <= 0) {
+//         setTimeLeft("00:00:00");
+//         clearInterval(interval);
+
+//         if (!hasRefreshedStatus.current) {
+//           hasRefreshedStatus.current = true;
+//           dispatch(getMatchDetails(id));
+//         }
+//       } else {
+//         const h = Math.floor(diff / 3600000);
+//         const m = Math.floor((diff % 3600000) / 60000);
+//         const s = Math.floor((diff % 60000) / 1000);
+//         setTimeLeft(
+//           `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`
+//         );
+//       }
+//     }, 1000);
+
+//     return () => clearInterval(interval);
+//   }, [match, id, dispatch]);
+
+//   /* ===========================
+//       ACTIONS
+//   ============================ */
+
+//   const handleJoinMatch = async () => {
+//     if (!footballeurInfo) {
+//       toast.info("Veuillez vous connecter");
+//       return router.push('/signin');
+//     }
+
+//     if (isUserJoinedMatch())
+//       return toast.warning("Déjà inscrit");
+
+//     await dispatch(joinMatch(id));
+//     await dispatch(getMatchDetails(id));
+//     toast.success("Match rejoint");
+//   };
+
+//   const handleJoinEquipe = async (equipeId) => {
+//     try {
+//       await dispatch(addPlayerToEquipe(equipeId));
+//       await dispatch(getMatchDetails(id));
+//       toast.success("Ajouté à l'équipe");
+//     } catch {
+//       toast.error("Erreur équipe");
+//     }
+//   };
+
+//   /* ===========================
+//       RENDER
+//   ============================ */
+
+//   return (
+//     <StadiumBackground>
+
+//       {/* BANNIÈRE MATCH TERMINÉ */}
+//       {match?.statut === "Terminé" && (
+//         <div className="w-full py-4 text-center bg-yellow-600 text-black font-bold">
+//           🏆 MATCH TERMINÉ — Évaluez les joueurs
+//         </div>
+//       )}
+
+//       <div className="max-w-5xl mx-auto p-6 space-y-6">
+
+//         {/* TITRE */}
+//         <h1 className="text-5xl font-extrabold text-center text-yellow-400">
+//           ⚽ Détails du Match
+//         </h1>
+
+//         {/* LOADER */}
+//         {loading ? (
+//           <Loader text="Chargement..." />
+//         ) : error ? (
+//           <p className="text-red-500">{error}</p>
+//         ) : !match ? (
+//           <p>Aucun match</p>
+//         ) : (
+//           <>
+
+//             {/* TIMER */}
+//             {match.statut !== "Terminé" && timeLeft && (
+//               <div className="text-center text-yellow-300 text-2xl font-bold">
+//                 ⏳ Temps restant : {timeLeft}
+//               </div>
+//             )}
+
+//             {/* INFOS MATCH */}
+//             <section className="bg-white/10 p-6 rounded-xl">
+//               <p>📅 {match.date} — {match.heure}</p>
+//               <p>👥 {match.joueurs.length} / {match.terrain.capacite}</p>
+//               <p>🎮 Mode : {match.mode}</p>
+//             </section>
+
+//             {/* ===========================
+//                 MODE INDIVIDUEL (INCHANGÉ)
+//             ============================ */}
+//             {match.mode === "INDIVIDUEL" && (
+//               <section className="bg-white/10 p-6 rounded-xl">
+//                 <h2 className="text-yellow-300 text-xl mb-4">👥 Joueurs</h2>
+
+//                 <div className="grid md:grid-cols-2 gap-4">
+//                   {match.joueurs.map(j => (
+//                     <div key={j._id} className="bg-white/5 p-4 rounded-lg">
+//                       <p className="font-bold">{j.name}</p>
+//                       <p>{j.position}</p>
+//                       <p>⭐ {getFormattedRating(j)}</p>
+//                     </div>
+//                   ))}
+//                 </div>
+//               </section>
+//             )}
+
+//             {/* ===========================
+//                 🆕 MODE ÉQUIPE
+//             ============================ */}
+//             {match.mode === "EQUIPE" && match.equipes?.length === 2 && (
+//               <div className="grid md:grid-cols-2 gap-6">
+
+//                 {match.equipes.map((equipe) => (
+//                   <div key={equipe._id} className="bg-black/60 p-5 rounded-xl border border-yellow-400/30">
+
+//                     <h3 className="text-yellow-400 font-bold text-xl mb-2">
+//                       {equipe.nom}
+//                     </h3>
+
+//                     <p className="text-sm text-yellow-200 mb-2">
+//                       🧢 Capitaine : {equipe.capitaine?.name || "—"}
+//                     </p>
+
+//                     <ul className="space-y-2">
+//                       {equipe.joueurs.map(j => (
+//                         <li key={j._id} className="flex justify-between text-white">
+//                           <span>{j.name}</span>
+//                           <span>{j.position}</span>
+//                         </li>
+//                       ))}
+//                     </ul>
+
+//                     {!isUserInEquipe(equipe) && (
+//                       <button
+//                         onClick={() => handleJoinEquipe(equipe._id)}
+//                         className="mt-4 w-full bg-yellow-500 text-black py-2 rounded-lg font-bold"
+//                       >
+//                         Rejoindre {equipe.nom}
+//                       </button>
+//                     )}
+
+//                   </div>
+//                 ))}
+//               </div>
+//             )}
+
+//             {/* BOUTONS */}
+//             <div className="flex flex-wrap justify-center gap-4 pt-6">
+
+//               <button
+//                 onClick={handleJoinMatch}
+//                 disabled={isUserJoinedMatch()}
+//                 className="px-6 py-3 bg-yellow-500 text-black rounded-xl font-bold"
+//               >
+//                 ⚽ Rejoindre
+//               </button>
+
+//               <button
+//                 disabled={match.statut !== "Terminé"}
+//                 onClick={() => router.push(`/matchs/${match._id}/evaluate`)}
+//                 className="px-6 py-3 bg-yellow-600 text-white rounded-xl font-bold"
+//               >
+//                 ⭐ Évaluer
+//               </button>
+
+//               <button
+//                 onClick={() => router.push('/matchs')}
+//                 className="px-6 py-3 bg-gray-600 text-white rounded-xl"
+//               >
+//                 ⬅ Retour
+//               </button>
+
+//             </div>
+
+//           </>
+//         )}
+//       </div>
+//     </StadiumBackground>
+//   );
+// }
+
+
+// 'use client';
+
+// import Link from "next/link";
+// import { useEffect, useState, useRef } from 'react';
+// import { useDispatch, useSelector } from 'react-redux';
+// import { useParams, useRouter } from 'next/navigation';
+// import { getMatchDetails, joinMatch } from '../../../redux/actions/matchActions';
+// import { motion } from 'framer-motion';
+// import { toast } from 'react-toastify';
+// import Loader from '../../../components/Loader';
+// import StadiumBackground from "@/components/StadiumBackground";
+
+// export default function MatchDetailPage() {
+//   const { id } = useParams();
+//   const router = useRouter();
+//   const dispatch = useDispatch();
+
+//   const { match, loading, error } = useSelector((state) => state.matchDetails || {});
+//   const { footballeurInfo } = useSelector((state) => state.footballeurSignin || {});
+
+//   const [timeLeft, setTimeLeft] = useState(null);
+//   const hasRefreshedStatus = useRef(false);
+
+//   /* ===========================
+//      Utils
+//   ============================ */
+
+//   const getFormattedRating = (player) => {
+//     if (!player || player.averageRating === undefined) return "N/A";
+//     const r = Number(player.averageRating);
+//     return isNaN(r) ? "N/A" : r.toFixed(1);
+//   };
+
+//   const isUserJoined = () => {
+//     if (!match || !match.joueurs || !footballeurInfo) return false;
+//     return match.joueurs.some(j =>
+//       (j._id || j).toString() === footballeurInfo._id.toString()
+//     );
+//   };
+
+//   const isMatchFull = () => {
+//     return match?.joueurs?.length >= Number(match?.terrain?.capacite || 0);
+//   };
+
+//   /* ===========================
+//      Load Match
+//   ============================ */
+
+//   useEffect(() => {
+//     if (id) dispatch(getMatchDetails(id));
+//   }, [dispatch, id]);
+
+//   /* ===========================
+//      Countdown
+//   ============================ */
+
+//   useEffect(() => {
+//     if (!match?.date || !match?.heure) return;
+
+//     const start = new Date(`${match.date}T${match.heure}`);
+//     const end = new Date(start.getTime() + 90 * 60 * 1000);
+
+//     const interval = setInterval(() => {
+//       const diff = end - new Date();
+//       if (diff <= 0) {
+//         setTimeLeft("00:00:00");
+//         clearInterval(interval);
+
+//         if (!hasRefreshedStatus.current) {
+//           hasRefreshedStatus.current = true;
+//           dispatch(getMatchDetails(id));
+//         }
+//       } else {
+//         const h = Math.floor(diff / 3600000);
+//         const m = Math.floor((diff % 3600000) / 60000);
+//         const s = Math.floor((diff % 60000) / 1000);
+//         setTimeLeft(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+//       }
+//     }, 1000);
+
+//     return () => clearInterval(interval);
+//   }, [match, id, dispatch]);
+
+//   /* ===========================
+//      Join
+//   ============================ */
+
+//   const handleJoin = async () => {
+//     if (!footballeurInfo) {
+//       toast.info("Veuillez vous connecter");
+//       return router.push('/signin');
+//     }
+
+//     if (isUserJoined()) return toast.warning("Déjà inscrit");
+//     if (isMatchFull()) return toast.error("Match complet");
+
+//     await dispatch(joinMatch(id));
+//     dispatch(getMatchDetails(id));
+//   };
+
+//   /* ===========================
+//      Render
+//   ============================ */
+
+//   return (
+//     <StadiumBackground>
+
+//       {match?.statut === "Terminé" && (
+//         <div className="w-full py-4 text-center bg-yellow-600 text-black font-bold">
+//           🏆 MATCH TERMINÉ
+//         </div>
+//       )}
+
+//       <div className="max-w-4xl mx-auto py-8 px-4 space-y-6">
+
+//         {loading ? <Loader /> : error ? (
+//           <div className="text-red-400">{error}</div>
+//         ) : match && (
+
+//           <>
+//             {/* ⏳ Countdown */}
+//             {match.statut !== "Terminé" && timeLeft && (
+//               <div className="text-center text-yellow-400 text-xl font-bold">
+//                 ⏳ Temps restant : {timeLeft}
+//               </div>
+//             )}
+
+//             {/* 👥 Joueurs inscrits */}
+//             <section className="bg-white/10 rounded-2xl p-6">
+//               <h2 className="text-yellow-300 font-bold mb-4">
+//                 Joueurs inscrits ({match.joueurs.length})
+//               </h2>
+
+//               <div className="grid md:grid-cols-2 gap-4">
+//                 {match.joueurs.map(j => (
+//                   <div key={j._id} className="bg-white/5 p-3 rounded-xl">
+//                     <p className="text-white font-semibold">{j.name}</p>
+//                     <p className="text-green-300 text-sm">{j.position}</p>
+//                     <p className="text-yellow-300 text-sm">
+//                       ⭐ {getFormattedRating(j)}
+//                     </p>
+//                   </div>
+//                 ))}
+//               </div>
+//             </section>
+
+//             {/* ⚽ MODE INDIVIDUEL */}
+//             {match.mode === "INDIVIDUEL" && match.equipes?.length === 2 && (
+//               <div className="grid md:grid-cols-2 gap-6">
+//                 {match.equipes.map(team => (
+//                   <div key={team._id} className="bg-black/60 p-4 rounded-2xl">
+//                     <h3 className="text-yellow-400 font-bold mb-3">{team.nom}</h3>
+//                     {team.joueurs.map(j => (
+//                       <div key={j._id} className="flex justify-between text-white">
+//                         <span>{j.name}</span>
+//                         <span>{j.position}</span>
+//                       </div>
+//                     ))}
+//                   </div>
+//                 ))}
+//               </div>
+//             )}
+
+//             {/* 🧢 MODE ÉQUIPE */}
+//             {match.mode === "EQUIPE" && match.equipes?.length > 0 && (
+//               <div className="grid md:grid-cols-2 gap-6">
+//                 {match.equipes.map(team => (
+//                   <div key={team._id} className="bg-black/60 p-4 rounded-2xl">
+//                     <h3 className="text-yellow-400 font-bold mb-3">
+//                       {team.nom} {team.capitaine && "🧢"}
+//                     </h3>
+
+//                     {team.joueurs.length === 0 ? (
+//                       <p className="text-white/50">Aucun joueur</p>
+//                     ) : (
+//                       team.joueurs.map(j => (
+//                         <div key={j._id} className="flex justify-between text-white">
+//                           <span>{j.name}</span>
+//                           <span>{j.position}</span>
+//                         </div>
+//                       ))
+//                     )}
+//                   </div>
+//                 ))}
+//               </div>
+//             )}
+
+//             {/* 🎯 Actions */}
+//             <div className="flex gap-4 justify-center pt-6">
+//               <button
+//                 onClick={handleJoin}
+//                 disabled={isUserJoined() || isMatchFull()}
+//                 className="px-6 py-3 bg-yellow-500 rounded-xl font-bold"
+//               >
+//                 Rejoindre
+//               </button>
+
+//               <button
+//                 onClick={() => router.push('/matchs')}
+//                 className="px-6 py-3 bg-gray-700 rounded-xl text-white"
+//               >
+//                 Retour
+//               </button>
+//             </div>
+//           </>
+//         )}
+//       </div>
+//     </StadiumBackground>
+//   );
+// }
+
+
+
+
+
+
+// 'use client';
+
+// import Link from "next/link";
+// import { useEffect, useState, useRef } from 'react';
+// import { useDispatch, useSelector } from 'react-redux';
+// import { useParams, useRouter } from 'next/navigation';
+// import { getMatchDetails, joinMatch } from '../../../redux/actions/matchActions';
+// import { motion } from 'framer-motion';
+// import { toast } from 'react-toastify';
+// import 'react-toastify/dist/ReactToastify.css';
+// import Loader from '../../../components/Loader';
+// import StadiumBackground from "@/components/StadiumBackground";
+
+// export default function MatchDetailPage() {
+//   const { id } = useParams();
+//   const router = useRouter();
+//   const dispatch = useDispatch();
+
+//   /* ---------------- Redux ---------------- */
+//   const { match, loading, error } = useSelector(
+//     (state) => state.matchDetails || {}
+//   );
+
+//   const { footballeurInfo } = useSelector(
+//     (state) => state.footballeurSignin || {}
+//   );
+
+//   /* ---------------- Local state ---------------- */
+//   const [timeLeft, setTimeLeft] = useState(null);
+//   const hasRefreshedStatus = useRef(false);
+
+//   /* ---------------- Helpers ---------------- */
+//   const isTeamMode = match?.mode === "EQUIPE";
+//   const isIndividualMode = match?.mode === "INDIVIDUEL";
+
+//   const getFormattedRating = (player) => {
+//     if (!player || !player.averageRating) return "N/A";
+//     const rating = parseFloat(player.averageRating);
+//     return isNaN(rating) ? "N/A" : rating.toFixed(1);
+//   };
+
+//   /* ---------------- Fetch match ---------------- */
+//   useEffect(() => {
+//     if (id) dispatch(getMatchDetails(id));
+//   }, [dispatch, id]);
+
+//   /* ---------------- Match timer ---------------- */
+//   useEffect(() => {
+//     if (!match?.date || !match?.heure) return;
+
+//     const start = new Date(`${match.date}T${match.heure}`);
+//     const end = new Date(start.getTime() + 90 * 60 * 1000);
+
+//     const interval = setInterval(() => {
+//       const diff = end - new Date();
+
+//       if (diff <= 0) {
+//         setTimeLeft("00:00:00");
+//         clearInterval(interval);
+
+//         if (!hasRefreshedStatus.current) {
+//           hasRefreshedStatus.current = true;
+//           dispatch(getMatchDetails(id));
+//         }
+//       } else {
+//         const h = Math.floor(diff / 3600000);
+//         const m = Math.floor((diff % 3600000) / 60000);
+//         const s = Math.floor((diff % 60000) / 1000);
+//         setTimeLeft(
+//           `${h.toString().padStart(2, '0')}:${m
+//             .toString()
+//             .padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+//         );
+//       }
+//     }, 1000);
+
+//     return () => clearInterval(interval);
+//   }, [match, dispatch, id]);
+
+//   /* ---------------- Join logic ---------------- */
+//   const isUserJoined = () => {
+//     if (!match?.joueurs || !footballeurInfo) return false;
+//     return match.joueurs.some((j) =>
+//       (j._id || j).toString() === footballeurInfo._id.toString()
+//     );
+//   };
+
+//   const isMatchFull = () => {
+//     const cap = match?.terrain?.capacite || 0;
+//     return (match?.joueurs?.length || 0) >= cap;
+//   };
+
+//   const canJoinMatch = () => {
+//     if (!footballeurInfo || isUserJoined()) return false;
+
+//     if (isIndividualMode) return !isMatchFull();
+
+//     if (isTeamMode) {
+//       return (match.equipes?.length || 0) < 2;
+//     }
+
+//     return false;
+//   };
+
+//   const getJoinLabel = () => {
+//     if (isUserJoined()) return "✅ Déjà inscrit";
+
+//     if (isTeamMode) {
+//       if (!match.equipes || match.equipes.length === 0)
+//         return "🅰️ Devenir capitaine (Équipe A)";
+//       if (match.equipes.length === 1)
+//         return "🅱️ Devenir capitaine (Équipe B)";
+//       return "⛔ Équipes complètes";
+//     }
+
+//     return "⚽ Rejoindre";
+//   };
+
+//   const handleJoin = async () => {
+//     if (!footballeurInfo) {
+//       toast.info("Veuillez vous connecter");
+//       router.push("/signin");
+//       return;
+//     }
+
+//     try {
+//       await dispatch(joinMatch(id));
+//       await dispatch(getMatchDetails(id));
+//       toast.success("Inscription réussie !");
+//     } catch {
+//       toast.error("Erreur lors de l'inscription");
+//     }
+//   };
+
+//   /* ---------------- Render ---------------- */
+//   return (
+//     <StadiumBackground>
+//       <motion.div
+//         initial={{ opacity: 0, y: 20 }}
+//         animate={{ opacity: 1, y: 0 }}
+//         className="max-w-4xl mx-auto py-8 px-4 space-y-6"
+//       >
+//         <h1 className="text-4xl font-extrabold text-center text-yellow-400">
+//           ⚽ Détails du Match
+//         </h1>
+
+//         {loading ? (
+//           <Loader text="Chargement..." />
+//         ) : error ? (
+//           <div className="text-red-400 text-center">{error}</div>
+//         ) : (
+//           <>
+//             {timeLeft && match?.statut !== "Terminé" && (
+//               <div className="text-center text-yellow-300 font-bold">
+//                 ⏳ Temps restant : {timeLeft}
+//               </div>
+//             )}
+
+//             {/* Terrain */}
+//             <section className="bg-white/10 p-6 rounded-2xl">
+//               <h2 className="text-yellow-300 font-bold mb-3">🏟️ Terrain</h2>
+//               <p>{match.terrain?.nom} — {match.terrain?.ville}</p>
+//               <p>Capacité : {match.terrain?.capacite}</p>
+//             </section>
+
+//             {/* Match */}
+//             <section className="bg-white/10 p-6 rounded-2xl">
+//               <h2 className="text-yellow-300 font-bold mb-3">📅 Match</h2>
+//               <p>Date : {match.date}</p>
+//               <p>Heure : {match.heure}</p>
+//               <p>Mode : {match.mode}</p>
+//             </section>
+
+//             {/* Joueurs */}
+//             <section className="bg-white/10 p-6 rounded-2xl">
+//               <h2 className="text-yellow-300 font-bold mb-3">
+//                 👥 Joueurs ({match.joueurs?.length || 0})
+//               </h2>
+
+//               <div className="grid md:grid-cols-2 gap-4">
+//                 {match.joueurs?.map((j) => (
+//                   <div
+//                     key={j._id}
+//                     className="bg-black/40 p-3 rounded-xl"
+//                   >
+//                     <p className="font-semibold">{j.name}</p>
+//                     <p className="text-sm text-yellow-300">{j.position}</p>
+//                     <p className="text-sm">⭐ {getFormattedRating(j)}</p>
+//                   </div>
+//                 ))}
+//               </div>
+//             </section>
+
+//             {/* Équipes (MODE ÉQUIPE) */}
+//             {isTeamMode && match.equipes?.length > 0 && (
+//               <div className="grid md:grid-cols-2 gap-6">
+//                 {match.equipes.map((team) => (
+//                   <div
+//                     key={team._id}
+//                     className="bg-black/60 p-4 rounded-2xl"
+//                   >
+//                     <h3 className="text-yellow-400 font-bold">
+//                       {team.nom}
+//                     </h3>
+//                     <p className="text-sm text-yellow-200">
+//                       🧢 Capitaine : {team.capitaine?.name}
+//                     </p>
+
+//                     <ul className="mt-3 space-y-1">
+//                       {team.joueurs.map((j) => (
+//                         <li key={j._id} className="flex justify-between">
+//                           <span>{j.name}</span>
+//                           <span className="text-yellow-300">{j.position}</span>
+//                         </li>
+//                       ))}
+//                     </ul>
+//                   </div>
+//                 ))}
+//               </div>
+//             )}
+
+//             {/* Actions */}
+//             {footballeurInfo && (
+//               <div className="flex flex-wrap justify-center gap-4 pt-4">
+//                 <button
+//                   onClick={handleJoin}
+//                   disabled={!canJoinMatch()}
+//                   className={`px-6 py-3 rounded-xl font-bold ${
+//                     canJoinMatch()
+//                       ? "bg-yellow-500 text-black"
+//                       : "bg-gray-600 text-gray-300 cursor-not-allowed"
+//                   }`}
+//                 >
+//                   {getJoinLabel()}
+//                 </button>
+
+//                 <button
+//                   onClick={() => router.push("/matchs")}
+//                   className="px-6 py-3 rounded-xl bg-gray-700 text-white"
+//                 >
+//                   ⬅️ Retour
+//                 </button>
+//               </div>
+//             )}
+//           </>
+//         )}
+//       </motion.div>
+//     </StadiumBackground>
+//   );
+// }
+
+
+
+

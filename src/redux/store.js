@@ -16,6 +16,7 @@ import {
   proprietaireListReducer,
   proprietaireDeleteReducer,
 } from './reducers/proprietaireReducers.js';
+import { equipeReducer } from './reducers/equipeReducers';
 
 import {
   terrainCreateReducer,
@@ -33,6 +34,7 @@ import {
   matchListMyReducer,
   matchUpdateReducer, 
   matchDeleteReducer,
+  matchJoinEquipeReducer,
 
 } from './reducers/matchReducers.js';
 
@@ -74,9 +76,14 @@ export function makeStore(preloadedState = {}) {
       matchListMy: matchListMyReducer,
       matchUpdate: matchUpdateReducer,
       matchDelete: matchDeleteReducer,
+      matchJoinEquipe: matchJoinEquipeReducer,
 
       evaluationCreate: evaluationCreateReducer,
       notifications: notificationReducer,
+
+      equipe: equipeReducer,
+
+
 
     },
     preloadedState,

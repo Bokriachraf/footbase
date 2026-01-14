@@ -266,7 +266,7 @@ export default function ProprietaireRegisterPage() {
                       value={capacite}
                       onChange={(e) => setCapacite(e.target.value)}
                       placeholder="Nombre de joueurs (ex: 14)"
-                      min="5"
+                      min="4"
                       max="22"
                       className="w-full px-4 py-3 rounded-xl bg-white/5 text-white placeholder-white/50 border border-white/20 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/30 outline-none transition-all duration-300 backdrop-blur-sm"
                       disabled={loading}

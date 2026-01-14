@@ -10,11 +10,29 @@ const footballeurSchema = new mongoose.Schema(
     age: { type: Number, required: true },
     gouvernorat: { type: String, required: true },
     evaluations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Evaluation' }],
+  matchPoints: [
+  {
+    type: Number, // 3 | 1 | 0
+    default: [],
+  }
+],
   },
   {
     timestamps: true,
   }
 );
+
+footballeurSchema.virtual("averageMatchPoints").get(function () {
+  if (!this.matchPoints || this.matchPoints.length === 0) return 0;
+
+  const total = this.matchPoints.reduce((acc, p) => acc + p, 0);
+  return (total / this.matchPoints.length).toFixed(2);
+});
+
+footballeurSchema.virtual("totalMatchPlayed").get(function () {
+  return this.matchPoints ? this.matchPoints.length : 0;
+});
+
 footballeurSchema.virtual("averageRating").get(function () {
   if (!this.evaluations || this.evaluations.length === 0) return 0;
 

@@ -6,7 +6,7 @@ import Terrain from "../models/terrainModel.js";
 import Equipe from "../models/equipeModel.js"; 
 import Evaluation from "../models/evaluationModel.js";
 import Footballeur from "../models/footballeurModel.js";
-
+import isTerrainOwner from "../middlewares/isTerrainOwner.js";
 import { isAuth , isAdmin} from "../utils.js";
 
 const matchRouter = express.Router();
@@ -39,70 +39,176 @@ matchRouter.post(
   })
 );
 
+// matchRouter.post(
+//   '/:matchId/join-equipe',
+//   isAuth,
+//   expressAsyncHandler(async (req, res) => {
+//     const userId = req.user._id;
+//     const match = await Match.findById(req.params.matchId).populate('equipes');
+
+//     if (!match) {
+//       return res.status(404).send({ message: 'Match non trouvé' });
+//     }
+
+//     if (match.mode !== 'EQUIPE') {
+//       return res.status(400).send({ message: 'Match non en mode équipe' });
+//     }
+
+//     // ❌ joueur déjà dans une équipe ?
+//     const alreadyInTeam = match.equipes.some(eq =>
+//       eq.joueurs.some(j => j.toString() === userId.toString())
+//     );
+
+//     if (alreadyInTeam) {
+//       return res.status(400).send({ message: 'Déjà dans une équipe' });
+//     }
+
+//     // 🟢 Aucune équipe → capitaine A
+//     if (match.equipes.length === 0) {
+//       const equipeA = await Equipe.create({
+//         nom: 'Équipe A',
+//         capitaine: userId,
+//         joueurs: [userId],
+//       });
+
+//       match.equipes.push(equipeA._id);
+//       await match.save();
+
+//       return res.send({
+//         message: 'Vous êtes capitaine de l’Équipe A 👑',
+//         equipe: equipeA,
+//       });
+//     }
+
+//     // 🟢 Une seule équipe → capitaine B
+//     if (match.equipes.length === 1) {
+//       const equipeB = await Equipe.create({
+//         nom: 'Équipe B',
+//         capitaine: userId,
+//         joueurs: [userId],
+//       });
+
+//       match.equipes.push(equipeB._id);
+//       await match.save();
+
+//       return res.send({
+//         message: 'Vous êtes capitaine de l’Équipe B 👑',
+//         equipe: equipeB,
+//       });
+//     }
+
+//     // ❌ Deux capitaines déjà définis
+//     return res.status(400).send({
+//       message: 'Les deux capitaines sont déjà définis',
+//     });
+//   })
+// );
+
 matchRouter.post(
-  '/:matchId/join-equipe',
+  "/:matchId/join-equipe",
   isAuth,
   expressAsyncHandler(async (req, res) => {
     const userId = req.user._id;
-    const match = await Match.findById(req.params.matchId).populate('equipes');
+    const matchId = req.params.matchId;
+
+    const match = await Match.findById(matchId).populate("equipes");
 
     if (!match) {
-      return res.status(404).send({ message: 'Match non trouvé' });
+      return res.status(404).send({ message: "Match non trouvé" });
     }
 
-    if (match.mode !== 'EQUIPE') {
-      return res.status(400).send({ message: 'Match non en mode équipe' });
+    if (match.mode !== "EQUIPE") {
+      return res.status(400).send({ message: "Match non en mode équipe" });
     }
 
     // ❌ joueur déjà dans une équipe ?
-    const alreadyInTeam = match.equipes.some(eq =>
-      eq.joueurs.some(j => j.toString() === userId.toString())
+    const alreadyInTeam = match.equipes.some((eq) =>
+      eq.joueurs.some((j) => j.toString() === userId.toString())
     );
 
     if (alreadyInTeam) {
-      return res.status(400).send({ message: 'Déjà dans une équipe' });
+      return res.status(400).send({ message: "Déjà dans une équipe" });
     }
 
-    // 🟢 Aucune équipe → capitaine A
+    /* =========================
+       🟢 CRÉATION ÉQUIPE A
+    ========================= */
     if (match.equipes.length === 0) {
       const equipeA = await Equipe.create({
-        nom: 'Équipe A',
+        nom: "Équipe A",
+        match: matchId,
         capitaine: userId,
         joueurs: [userId],
       });
 
       match.equipes.push(equipeA._id);
+
+      // 🔥 sync match
+      if (!match.joueurs.includes(userId)) {
+        match.joueurs.push(userId);
+      }
+
+      if (!match.capitaines.includes(userId)) {
+        match.capitaines.push(userId);
+      }
+
       await match.save();
 
       return res.send({
-        message: 'Vous êtes capitaine de l’Équipe A 👑',
+        message: "Vous êtes capitaine de l’Équipe A 👑",
         equipe: equipeA,
       });
     }
 
-    // 🟢 Une seule équipe → capitaine B
+    /* =========================
+       🟢 CRÉATION ÉQUIPE B
+    ========================= */
     if (match.equipes.length === 1) {
       const equipeB = await Equipe.create({
-        nom: 'Équipe B',
+        nom: "Équipe B",
+        match: matchId,
         capitaine: userId,
         joueurs: [userId],
       });
 
       match.equipes.push(equipeB._id);
+
+      // 🔥 sync match
+      if (!match.joueurs.includes(userId)) {
+        match.joueurs.push(userId);
+      }
+
+      if (!match.capitaines.includes(userId)) {
+        match.capitaines.push(userId);
+      }
+
       await match.save();
 
+           // ✅ CHECK ÉQUIPES COMPLÈTES
+      const equipes = await Equipe.find({ match: matchId });
+
+      const allFull =
+        equipes.length === 2 &&
+        equipes.every((eq) => eq.joueurs.length === 7);
+
+      if (allFull) {
+        match.statut = "Complet";
+        await match.save();
+      }
+
       return res.send({
-        message: 'Vous êtes capitaine de l’Équipe B 👑',
+        message: "Vous êtes capitaine de l’Équipe B 👑",
         equipe: equipeB,
       });
     }
 
-    // ❌ Deux capitaines déjà définis
     return res.status(400).send({
-      message: 'Les deux capitaines sont déjà définis',
+      message: "Les deux capitaines sont déjà définis",
     });
   })
 );
+
+
 
 // 📋 Liste des matchs disponibles
 matchRouter.get(
@@ -173,6 +279,71 @@ matchRouter.get(
 
     res.send(match);
   })
+);
+
+matchRouter.patch(
+  "/:id/score",
+  isAuth,
+  isTerrainOwner,
+  async (req, res) => {
+    const { equipeA, equipeB } = req.body;
+
+    const match = await Match.findById(req.params.id).populate({
+      path: "equipes",
+      populate: {
+        path: "joueurs",
+      },
+    });
+
+    if (!match) {
+      return res.status(404).json({ message: "Match introuvable" });
+    }
+
+    if (match.equipes.length !== 2) {
+      return res.status(400).json({ message: "Match incomplet (équipes manquantes)" });
+    }
+
+    // 🔒 empêcher double saisie
+    if (match.scoreFinal === true) {
+      return res.status(400).json({ message: "Score déjà enregistré" });
+    }
+
+    match.score = { equipeA, equipeB };
+    match.scoreFinal = true;
+
+    let pointsA = 0;
+    let pointsB = 0;
+
+    if (equipeA > equipeB) {
+      pointsA = 3;
+      pointsB = 0;
+    } else if (equipeA < equipeB) {
+      pointsA = 0;
+      pointsB = 3;
+    } else {
+      pointsA = 1;
+      pointsB = 1;
+    }
+
+    // ✅ joueurs équipe A
+    for (const joueur of match.equipes[0].joueurs) {
+      joueur.matchPoints.push(pointsA);
+      await joueur.save();
+    }
+
+    // ✅ joueurs équipe B
+    for (const joueur of match.equipes[1].joueurs) {
+      joueur.matchPoints.push(pointsB);
+      await joueur.save();
+    }
+
+    await match.save();
+
+    res.json({
+      message: "Score ajouté avec succès",
+      match,
+    });
+  }
 );
 
 

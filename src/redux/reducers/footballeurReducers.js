@@ -18,6 +18,9 @@ import {
   FOOTBALLEUR_DETAILS_REQUEST,
   FOOTBALLEUR_DETAILS_SUCCESS,
   FOOTBALLEUR_DETAILS_FAIL,
+    FOOTBALLEUR_SEARCH_REQUEST,
+  FOOTBALLEUR_SEARCH_SUCCESS,
+  FOOTBALLEUR_SEARCH_FAIL,
 } from '../constants/footballeurConstants';
 
 export const footballeurRegisterReducer = (state = {}, action) => {
@@ -106,6 +109,23 @@ export const footballeurDetailsReducer = (state = { footballeur: {} }, action) =
     case FOOTBALLEUR_DETAILS_SUCCESS:
       return { loading: false, footballeur: action.payload };
     case FOOTBALLEUR_DETAILS_FAIL:
+      return { loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+
+export const footballeurSearchReducer = (
+  state = { players: [] },
+  action
+) => {
+  switch (action.type) {
+    case FOOTBALLEUR_SEARCH_REQUEST:
+      return { loading: true, players: [] };
+    case FOOTBALLEUR_SEARCH_SUCCESS:
+      return { loading: false, players: action.payload };
+    case FOOTBALLEUR_SEARCH_FAIL:
       return { loading: false, error: action.payload };
     default:
       return state;

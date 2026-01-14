@@ -6,7 +6,8 @@ import {
   footballeurDeleteReducer,
   footballeurListReducer,
   footballeurUpdateReducer,
-  footballeurDetailsReducer
+  footballeurDetailsReducer,
+  footballeurSearchReducer 
 } from './reducers/footballeurReducers.js';
 
 import {
@@ -35,12 +36,16 @@ import {
   matchUpdateReducer, 
   matchDeleteReducer,
   matchJoinEquipeReducer,
+  matchAddScoreReducer,
 
 } from './reducers/matchReducers.js';
 
 import { notificationReducer } from "./reducers/notificationReducer";
 
-
+import {
+  invitationSendReducer,
+  invitationListMyReducer,
+} from "./reducers/invitationReducers";
  
 
 export function makeStore(preloadedState = {}) {
@@ -53,6 +58,8 @@ export function makeStore(preloadedState = {}) {
       footballeurDelete: footballeurDeleteReducer,
       footballeurUpdate: footballeurUpdateReducer,
       footballeurDetails: footballeurDetailsReducer,
+      footballeurSearch: footballeurSearchReducer,
+
 
       // 🏠 Propriétaire
       proprietaireSignin: proprietaireSigninReducer,
@@ -77,9 +84,12 @@ export function makeStore(preloadedState = {}) {
       matchUpdate: matchUpdateReducer,
       matchDelete: matchDeleteReducer,
       matchJoinEquipe: matchJoinEquipeReducer,
-
+      matchAddScore: matchAddScoreReducer,
       evaluationCreate: evaluationCreateReducer,
       notifications: notificationReducer,
+
+      invitationSend: invitationSendReducer,
+      myInvitations: invitationListMyReducer,
 
       equipe: equipeReducer,
 

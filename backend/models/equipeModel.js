@@ -4,6 +4,12 @@ const equipeSchema = new mongoose.Schema(
   {
     nom: { type: String, required: true },
 
+    match: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Match",
+      required: true,
+    },
+
     joueurs: [
       {
         type: mongoose.Schema.Types.ObjectId,

@@ -23,6 +23,9 @@ import {
   MATCH_JOIN_EQUIPE_REQUEST,
   MATCH_JOIN_EQUIPE_SUCCESS,
   MATCH_JOIN_EQUIPE_FAIL,
+  MATCH_ADD_SCORE_REQUEST,
+  MATCH_ADD_SCORE_SUCCESS,
+  MATCH_ADD_SCORE_FAIL,
 } from "../constants/matchConstants";
 
 export const matchCreateReducer = (state = {}, action) => {
@@ -133,6 +136,33 @@ export const matchJoinEquipeReducer = (state = {}, action) => {
 
     case MATCH_JOIN_EQUIPE_FAIL:
       return { loading: false, error: action.payload };
+
+    default:
+      return state;
+  }
+};
+
+
+export const matchAddScoreReducer = (
+  state = { loading: false },
+  action
+) => {
+  switch (action.type) {
+    case MATCH_ADD_SCORE_REQUEST:
+      return { loading: true };
+
+    case MATCH_ADD_SCORE_SUCCESS:
+      return {
+        loading: false,
+        success: true,
+        match: action.payload,
+      };
+
+    case MATCH_ADD_SCORE_FAIL:
+      return {
+        loading: false,
+        error: action.payload,
+      };
 
     default:
       return state;

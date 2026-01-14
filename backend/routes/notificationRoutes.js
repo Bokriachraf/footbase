@@ -13,8 +13,13 @@ notificationRouter.get(
   expressAsyncHandler(async (req, res) => {
     const notifs = await Notification.find({ user: req.user._id })
       .sort({ createdAt: -1 })
-      .populate("sourceUser", "name nom image"); // optional populate
-    res.json(notifs);
+      .populate("sourceUser", "name nom image")
+      .populate("equipe", "nom")
+        .populate({
+  path: "invitation",
+  select: "statut",
+})
+      res.json(notifs);
   })
 );
 

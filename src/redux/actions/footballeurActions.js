@@ -19,6 +19,9 @@ import {
   FOOTBALLEUR_DETAILS_REQUEST,
   FOOTBALLEUR_DETAILS_SUCCESS,
   FOOTBALLEUR_DETAILS_FAIL,
+   FOOTBALLEUR_SEARCH_REQUEST,
+  FOOTBALLEUR_SEARCH_SUCCESS,
+  FOOTBALLEUR_SEARCH_FAIL,
 } from '../constants/footballeurConstants';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -201,3 +204,34 @@ export const getFootballeurDetails = (id) => async (dispatch, getState) => {
     });
   }
 };
+
+export const searchInvitablePlayers =
+  (query) => async (dispatch, getState) => {
+    try {
+      dispatch({ type: FOOTBALLEUR_SEARCH_REQUEST });
+
+      const {
+        footballeurSignin: { footballeurInfo },
+      } = getState();
+
+      const { data } = await Axios.get(
+        `${API}/api/footballeurs/invite/search?q=${query}`,
+        {
+          headers: {
+            Authorization: `Bearer ${footballeurInfo.token}`,
+          },
+        }
+      );
+
+      dispatch({
+        type: FOOTBALLEUR_SEARCH_SUCCESS,
+        payload: data,
+      });
+    } catch (error) {
+      dispatch({
+        type: FOOTBALLEUR_SEARCH_FAIL,
+        payload:
+          error.response?.data?.message || error.message,
+      });
+    }
+  };

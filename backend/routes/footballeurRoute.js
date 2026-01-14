@@ -86,6 +86,25 @@ footballeurRouter.get(
   })
 );
 
+// routes/footballeurRoute.js
+footballeurRouter.get(
+  '/invite/search',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const keyword = req.query.q
+      ? {
+          name: { $regex: req.query.q, $options: 'i' },
+        }
+      : {};
+
+    const joueurs = await Footballeur.find(keyword).select(
+      '_id name position'
+    );
+
+    res.send(joueurs);
+  })
+);
+
 
 footballeurRouter.delete(
   '/:id',

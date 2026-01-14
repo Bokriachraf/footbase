@@ -2,25 +2,76 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import axios from 'axios';
 import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { markNotificationRead } from "../redux/actions/notificationActions";
+import { clearNotification,markNotificationRead } from "../redux/actions/notificationActions";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { toast } from "react-toastify";
 
 
+
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 export default function NotificationPanel({ open, onClose }) {
   const dispatch = useDispatch();
   const panelRef = useRef(null);
 
   // notifications from redux
-  const notifications = useSelector((state) => state.notifications.list || []);
+  const notifications  = useSelector((state) => state.notifications.list || []);
+  const isInvitation = notifications?.type === "INVITATION";
   const unread = notifications.filter((n) => !n.read);
 
   // for pop-animation on newly received notif
   const [flashId, setFlashId] = useState(null);
   const prevCountRef = useRef(unread.length);
+  const { footballeurInfo } = useSelector(
+  (state) => state.footballeurSignin
+);
+
+
+const acceptInvitation = async (invitationId,notificationsId) => {
+  try {
+  await axios.patch(
+    `${API}/api/invitations/${invitationId}/accept`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${footballeurInfo.token}`,
+      },
+    }
+  );
+  toast.success("✅ Invitation acceptée");
+     dispatch(clearNotification(notificationsId));
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de l’acceptation");
+    }
+  };
+
+ const refuseInvitation = async (invitationId,notificationsId) => {
+    try {
+      await axios.patch(
+        `${API}/api/invitations/${invitationId}/refuse`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${footballeurInfo.token}`,
+          },
+        }
+      );
+
+       toast.info("❌ Invitation refusée");
+           dispatch(markNotificationRead(notificationsId));
+
+        dispatch(clearNotification(notificationsId));
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors du refus");
+    }
+  };
 
   // bottom-sheet positions (fractions of viewport height)
   const POS = {
@@ -86,7 +137,7 @@ export default function NotificationPanel({ open, onClose }) {
   }, [open, onClose]);
 
   const handleMarkRead = (id) => {
-    dispatch(markNotificationRead(id));
+    dispatch(clearNotification(id));
   };
 
   // Drag end handler (mobile bottom sheet)
@@ -278,6 +329,34 @@ export default function NotificationPanel({ open, onClose }) {
                             <div className="text-white font-semibold text-sm">{n.title}</div>
                             <div className="text-white/80 text-sm mt-1">{n.message}</div>
 
+ {/* {n.type === "INVITATION" && n.statut === "EN_ATTENTE" && ( */}
+ 
+ {n.type === "INVITATION" &&
+  n.invitation &&
+  n.invitation.statut === "EN_ATTENTE" && (
+
+     <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => acceptInvitation(n.invitation._id, n._id)}
+                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+              >
+                Accepter
+              </button>
+
+              <button
+                onClick={() => refuseInvitation(n.invitation._id, n._id)}
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+              >
+                Refuser
+              </button>
+            </div>
+
+ 
+)}
+
+
+
+
                             {/* show note/comment if present in notif object */}
                             {typeof n.note !== "undefined" && (
                               <div className="mt-2 text-yellow-400 font-semibold text-sm">
@@ -289,9 +368,7 @@ export default function NotificationPanel({ open, onClose }) {
                             )}
 
                             <div className="text-xs text-white/50 mt-2">
-                              {/* {n.sourceUser && (n.sourceUser.name || n.sourceUser.nom) && (
-                                <>Par : {n.sourceUser.name || n.sourceUser.nom} </>
-                              )} */}
+                              
                               {n.match && <span className="ml-2">• Match {String(n.match).slice(0, 8)}</span>}
                             </div>
                           </div>
@@ -310,7 +387,7 @@ export default function NotificationPanel({ open, onClose }) {
                   })}
                 </div>
               )}
-            </div>
+              </div>
           </motion.div>
         </>
       )}

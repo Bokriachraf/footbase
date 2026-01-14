@@ -24,6 +24,9 @@ import {
   MATCH_JOIN_EQUIPE_REQUEST,
   MATCH_JOIN_EQUIPE_SUCCESS,
   MATCH_JOIN_EQUIPE_FAIL,
+  MATCH_ADD_SCORE_REQUEST,
+  MATCH_ADD_SCORE_SUCCESS,
+  MATCH_ADD_SCORE_FAIL,
 } from "../constants/matchConstants";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -142,6 +145,9 @@ export const deleteMatch = (matchId) => async (dispatch, getState) => {
   }
 };
 
+
+
+
 export const joinMatchEquipe = (matchId) => async (dispatch, getState) => {
   try {
     dispatch({ type: MATCH_JOIN_EQUIPE_REQUEST });
@@ -150,7 +156,7 @@ export const joinMatchEquipe = (matchId) => async (dispatch, getState) => {
       footballeurSignin: { footballeurInfo },
     } = getState();
 
-    const { data } = await Axios.post(
+    await Axios.post(
       `${API}/api/matchs/${matchId}/join-equipe`,
       {},
       {
@@ -160,9 +166,16 @@ export const joinMatchEquipe = (matchId) => async (dispatch, getState) => {
       }
     );
 
+    // ✅ IMPORTANT : recharger le match
+    const { data } = await Axios.get(`${API}/api/matchs/${matchId}`);
+
+    dispatch({
+      type: MATCH_DETAILS_SUCCESS,
+      payload: data,
+    });
+
     dispatch({
       type: MATCH_JOIN_EQUIPE_SUCCESS,
-      payload: data, // { message, equipe }
     });
   } catch (error) {
     dispatch({
@@ -174,3 +187,41 @@ export const joinMatchEquipe = (matchId) => async (dispatch, getState) => {
     });
   }
 };
+
+
+
+
+export const addMatchScore =
+  ({ matchId, scoreA, scoreB }) =>
+  async (dispatch, getState) => {
+    try {
+      dispatch({ type: MATCH_ADD_SCORE_REQUEST });
+
+      const {
+        proprietaireSignin: { proprietaireInfo },
+      } = getState();
+
+      const { data } = await Axios.patch(
+        `${API}/api/matchs/${matchId}/score`,
+        { equipeA: scoreA, equipeB: scoreB },
+        {
+          headers: {
+            Authorization: `Bearer ${proprietaireInfo.token}`,
+          },
+        }
+      );
+
+      dispatch({
+        type: MATCH_ADD_SCORE_SUCCESS,
+        payload: data.match,
+      });
+    } catch (error) {
+      dispatch({
+        type: MATCH_ADD_SCORE_FAIL,
+        payload:
+          error.response?.data?.message ||
+          error.message ||
+          "Erreur ajout score",
+      });
+    }
+  };

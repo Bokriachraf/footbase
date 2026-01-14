@@ -79,6 +79,7 @@ evaluationRouter.post(
     // 🔔 Création d'une notification (DB)
     const notif = await Notification.create({
       user: playerId,
+      type: "EVALUATION",
       title: "Nouvelle évaluation",
       message: isNew
         ? "Vous avez reçu une nouvelle évaluation."

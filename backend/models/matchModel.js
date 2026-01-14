@@ -47,8 +47,15 @@ const matchSchema = new mongoose.Schema({
 
   prixParJoueur: Number,
 
-  scoreFinal: { type: String, default: null },
-  noteAttribuee: { type: Boolean, default: false },
+score: {
+  equipeA: Number,
+  equipeB: Number,
+},
+scoreFinal: {
+  type: Boolean,
+  default: false,
+},
+noteAttribuee: { type: Boolean, default: false },
 });
 
 

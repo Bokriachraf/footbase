@@ -47,6 +47,11 @@ const matchSchema = new mongoose.Schema({
 
   prixParJoueur: Number,
 
+competition: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Competition",
+},
+  
 score: {
   equipeA: Number,
   equipeB: Number,

@@ -16,6 +16,16 @@ export default function MatchListPage() {
     dispatch(listMatches());
   }, [dispatch]);
 
+// Trier les matchs par date (les plus récents en premier)
+const sortedMatches = [...(matchs || [])].sort((a, b) => {
+  // Créer des objets Date à partir de la date et heure
+  const dateA = new Date(`${a.date}T${a.heure || '00:00'}`);
+  const dateB = new Date(`${b.date}T${b.heure || '00:00'}`);
+  
+  // Tri décroissant (plus récent d'abord)
+  return dateB - dateA;
+});
+
   return (
     <StadiumBackground>
       <motion.div
@@ -71,8 +81,10 @@ export default function MatchListPage() {
             transition={{ delay: 0.3 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {matchs?.length > 0 ? (
-              matchs.map((m, index) => (
+            {/* {matchs?.length > 0 ? (
+              matchs.map((m, index) => ( */}
+              {sortedMatches?.length > 0 ? (
+                   sortedMatches.map((m, index) => (
                 <motion.div
                   key={m._id}
                   initial={{ opacity: 0, y: 30 }}
@@ -202,7 +214,7 @@ export default function MatchListPage() {
             className="text-center mt-12 pt-8 border-t border-white/10"
           >
             <p className="text-white/60 mb-4">
-              {matchs.length} match{matchs.length > 1 ? 's' : ''} disponible{matchs.length > 1 ? 's' : ''}
+            {sortedMatches.length} match{sortedMatches.length > 1 ? 's' : ''} disponible{sortedMatches.length > 1 ? 's' : ''}
             </p>
             <Link 
               href="/"

@@ -22,7 +22,10 @@ const equipeSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Footballeur",
     },
-
+       entraineur: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Footballeur", // ou User si plus tard
+    },
     score: {
       type: Number,
       default: 0,

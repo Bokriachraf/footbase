@@ -14,6 +14,7 @@ import evaluationRouter from "./routes/evaluationRoutes.js";
 import notificationRouter from "./routes/notificationRoutes.js";
 import equipeRouter from './routes/equipeRoute.js';
 import invitationRouter from './routes/invitationRoutes.js';
+import competitionRouter from "./routes/competitionRoutes.js";
 
 
 dotenv.config();
@@ -54,6 +55,7 @@ app.use("/api/evaluations", evaluationRouter);
 app.use("/api/notifications", notificationRouter);
 app.use('/api/equipes', equipeRouter);
 app.use('/api/invitations', invitationRouter);
+app.use("/api/competitions", competitionRouter);
 
 
 

@@ -32,6 +32,8 @@ matchRouter.post(
       prixParJoueur,
       statut: "Ouvert",
       proprietaire: req.user._id,
+      equipes: req.body.equipes || null,
+      competition: req.body.competition || null,
     });
 
     const createdMatch = await match.save();

@@ -74,3 +74,36 @@ export const sendInvitation =
     });
   }
 };
+
+export const sendFreeInvitation =
+  ({ equipeId, playerId }) =>
+  async (dispatch, getState) => {
+    try {
+      dispatch({ type: INVITATION_SEND_REQUEST });
+
+      const {
+        footballeurSignin: { footballeurInfo },
+      } = getState();
+
+      const { data } = await Axios.post(
+        `${API}/api/invitations/free`,
+        { equipeId, playerId },
+        {
+          headers: {
+            Authorization: `Bearer ${footballeurInfo.token}`,
+          },
+        }
+      );
+
+      dispatch({
+        type: INVITATION_SEND_SUCCESS,
+        payload: data,
+      });
+    } catch (error) {
+      dispatch({
+        type: INVITATION_SEND_FAIL,
+        payload:
+          error.response?.data?.message || error.message,
+      });
+    }
+  };

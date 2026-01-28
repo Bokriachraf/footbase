@@ -6,6 +6,28 @@ import { isAuth } from '../utils.js';
 
 const equipeRouter = express.Router();
 
+
+// POST /api/equipes
+equipeRouter.post(
+  '/',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const { nom, matchId } = req.body;
+
+    const equipe = new Equipe({
+      nom,
+      match: matchId,
+      capitaine: req.user._id,
+      joueurs: [req.user._id],
+    });
+
+    const createdEquipe = await equipe.save();
+    res.status(201).send(createdEquipe);
+  })
+);
+
+
+
 /**
  * 🔹 Ajouter un joueur dans une équipe
  * 🔐 Réservé au capitaine
@@ -110,6 +132,97 @@ equipeRouter.delete(
 
     res.send({
       message: 'Joueur retiré de l’équipe',
+      equipe,
+    });
+  })
+);
+
+// GET /api/equipes/:id
+equipeRouter.get(
+  "/:id",
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const equipe = await Equipe.findById(req.params.id)
+    .populate("capitaine", "name position")
+    .populate("joueurs", "name position");
+  
+    if (!equipe) {
+      return res.status(404).send({ message: "Équipe introuvable" });
+    }
+
+    res.send(equipe);
+  })
+);
+
+// GET /api/equipes/mine/capitaine
+equipeRouter.get(
+  '/mine/capitaine',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const equipes = await Equipe.find({
+      capitaine: req.user._id,
+    }).populate('joueurs', 'nom prenom');
+
+    res.send(equipes);
+  })
+);
+
+equipeRouter.post(
+  "/free",
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const { nom } = req.body;
+
+    if (!nom) {
+      return res.status(400).send({ message: "Nom d'équipe requis" });
+    }
+
+    const equipe = new Equipe({
+      nom,
+      capitaine: req.user._id,
+      joueurs: [req.user._id],
+    });
+
+    const createdEquipe = await equipe.save();
+
+    res.status(201).send(createdEquipe);
+  })
+);
+
+// POST /api/equipes/free/:equipeId/add-player
+equipeRouter.post(
+  "/free/:equipeId/add-player",
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const { playerId } = req.body;
+
+    if (!playerId) {
+      return res.status(400).send({ message: "playerId requis" });
+    }
+
+    const equipe = await Equipe.findById(req.params.equipeId);
+
+    if (!equipe) {
+      return res.status(404).send({ message: "Équipe introuvable" });
+    }
+
+    if (equipe.capitaine.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .send({ message: "Seul le capitaine peut ajouter des joueurs" });
+    }
+
+    if (equipe.joueurs.some(j => j.toString() === playerId)) {
+      return res.status(400).send({
+        message: "Joueur déjà présent dans l'équipe",
+      });
+    }
+
+    equipe.joueurs.push(playerId);
+    await equipe.save();
+
+    res.send({
+      message: "Joueur ajouté à l'équipe libre",
       equipe,
     });
   })

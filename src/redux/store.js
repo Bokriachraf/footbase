@@ -17,7 +17,13 @@ import {
   proprietaireListReducer,
   proprietaireDeleteReducer,
 } from './reducers/proprietaireReducers.js';
-import { equipeReducer } from './reducers/equipeReducers';
+import {
+   equipeReducer, 
+   myCaptainEquipesReducer, 
+   equipeCreateReducer,
+   equipeMineReducer, 
+   equipeDetailsReducer,
+  } from './reducers/equipeReducers';
 
 import {
   terrainCreateReducer,
@@ -46,6 +52,7 @@ import {
   invitationSendReducer,
   invitationListMyReducer,
 } from "./reducers/invitationReducers";
+import { competitionDetailsReducer, competitionListReducer } from './reducers/competitionReducers';
  
 
 export function makeStore(preloadedState = {}) {
@@ -92,6 +99,12 @@ export function makeStore(preloadedState = {}) {
       myInvitations: invitationListMyReducer,
 
       equipe: equipeReducer,
+      myCaptainEquipes: myCaptainEquipesReducer,
+      equipeCreate: equipeCreateReducer,
+      equipeMine: equipeMineReducer,
+      equipeDetails: equipeDetailsReducer,
+      competitionList:competitionListReducer,
+      competitionDetails:competitionDetailsReducer,
 
 
 

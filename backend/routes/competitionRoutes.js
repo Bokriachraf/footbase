@@ -3,6 +3,7 @@ import Competition from "../models/competitionModel.js";
 import expressAsyncHandler from "express-async-handler"
 import { isAuth } from '../utils.js';
 import Equipe from "../models/equipeModel.js";
+import { generateTournamentNoGroup } from "../utils/competitionCalendar.js";
 
 const competitionRouter = express.Router();
 
@@ -43,6 +44,15 @@ competitionRouter.get("/:id", async (req, res) => {
           path: "capitaine",
           select: "name position",
         },
+      })
+      // 🔥 AJOUT IMPORTANT
+      .populate({
+        path: "calendrier.matchs.equipeA",
+        select: "nom logo",
+      })
+      .populate({
+        path: "calendrier.matchs.equipeB",
+        select: "nom logo",
       });
 
     if (!competition) {
@@ -59,6 +69,36 @@ competitionRouter.get("/:id", async (req, res) => {
     });
   }
 });
+
+
+// competitionRouter.get("/:id", async (req, res) => {
+//   try {
+//     const competition = await Competition.findById(req.params.id)
+//       .populate("organisateur", "name email")
+//       .populate("terrains", "nom adresse")
+//       .populate({
+//         path: "equipesInscrites",
+//         select: "nom logo capitaine",
+//         populate: {
+//           path: "capitaine",
+//           select: "name position",
+//         },
+//       });
+
+//     if (!competition) {
+//       return res.status(404).json({
+//         message: "Compétition introuvable",
+//       });
+//     }
+
+//     res.json(competition);
+//   } catch (error) {
+//     console.error("GET competition by id error:", error);
+//     res.status(500).json({
+//       message: "Erreur lors de la récupération de la compétition",
+//     });
+//   }
+// });
 
 
    // competitionRouter.get("/:id", async (req, res) => {
@@ -97,6 +137,7 @@ competitionRouter.post(
       dateDebut,
       dateFin,
       nbEquipes,
+      phaseType,
     } = req.body;
 
     const competition = new Competition({
@@ -109,6 +150,7 @@ competitionRouter.post(
       dateDebut,
       dateFin,
       nbEquipes,
+      phaseType,
       organisateur: req.user._id, // ✅ propriétaire connecté
     });
 
@@ -157,14 +199,34 @@ competitionRouter.post(
     }
 
     competition.equipesInscrites.push(equipeId);
+
+ if (
+      competition.type === "TOURNOI" &&
+      competition.phaseType === "SANS_GROUPES" &&
+      competition.equipesInscrites.length === competition.nbEquipes
+    ) {
+      await generateTournamentNoGroup(competition);
+      competition.status = "EN_COURS";
+    }
+
     await competition.save();
 
     res.send({
       message: 'Équipe inscrite avec succès',
+      calendrierGenere: competition.calendrier.length > 0,
       competition,
     });
   })
+  
 );
+
+competitionRouter.get("/:id/calendrier", async (req, res) => {
+  const competition = await Competition.findById(req.params.id)
+    .populate("calendrier.matchs.equipeA", "nom logo")
+    .populate("calendrier.matchs.equipeB", "nom logo");
+
+  res.send(competition.calendrier);
+});
 
 // competitionRouter.post(
 //   "/:id/register",

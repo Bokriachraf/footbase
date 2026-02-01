@@ -76,6 +76,7 @@ export const registerEquipeCompetition =
         type: COMPETITION_REGISTER_SUCCESS,
         payload: data.competition,
       });
+      return data;
     } catch (error) {
       dispatch({
         type: COMPETITION_REGISTER_FAIL,

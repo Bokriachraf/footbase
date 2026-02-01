@@ -83,10 +83,33 @@ export default function CompetitionDetailsPage() {
     setShowEquipeModal(true);
   };
 
-  const handleEquipeSelect = (equipeId) => {
-    dispatch(registerEquipeCompetition(competition._id, equipeId));
+const handleEquipeSelect = async (equipeId) => {
+  try {
+    const res = await dispatch(
+      registerEquipeCompetition(competition._id, equipeId)
+    );
+
     setShowEquipeModal(false);
-  };
+
+    // 🔁 Recharger la compétition (sans refresh page)
+    await dispatch(getCompetitionDetails(id));
+
+    // 🎉 Toast intelligent
+    if (res.calendrierGenere) {
+      toast.success("🎉 Inscription réussie & calendrier généré !");
+    } else {
+      toast.success("✅ Équipe inscrite avec succès");
+    }
+  } catch (error) {
+    toast.error("❌ Erreur lors de l'inscription");
+  }
+};
+
+
+  // const handleEquipeSelect = (equipeId) => {
+  //   dispatch(registerEquipeCompetition(competition._id, equipeId));
+  //   setShowEquipeModal(false);
+  // };
 
   /* ================= RENDER ================= */
   return (
@@ -146,6 +169,39 @@ export default function CompetitionDetailsPage() {
             </ul>
           )}
         </div>
+{/* ================= CALENDRIER ================= */}
+{competition.calendrier?.length > 0 && (
+  <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 space-y-6 text-white">
+    <h2 className="text-2xl font-bold text-yellow-400 text-center">
+      📅 Calendrier de la compétition
+    </h2>
+
+    {competition.calendrier.map((tour, index) => (
+      <div key={index} className="space-y-3">
+        <h3 className="text-lg font-semibold text-center text-yellow-300">
+          🏆 {tour.tour.replaceAll("_", " ")}
+        </h3>
+
+        {tour.matchs.map((match, i) => (
+          <div
+            key={i}
+            className="flex justify-between items-center bg-black/40 p-3 rounded-lg"
+          >
+            <span className="font-medium">
+              {match.equipeA?.nom || "À définir"}
+            </span>
+
+            <span className="font-bold text-yellow-400">VS</span>
+
+            <span className="font-medium">
+              {match.equipeB?.nom || "À définir"}
+            </span>
+          </div>
+        ))}
+      </div>
+    ))}
+  </div>
+)}
 
         {/* ================= INSCRIPTION ================= */}
         <button

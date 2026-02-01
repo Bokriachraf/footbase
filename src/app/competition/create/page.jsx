@@ -10,6 +10,7 @@ export default function CompetitionPage() {
   const [nom, setNom] = useState("");
   const [type, setType] = useState("CHAMPIONNAT");
   const [categorie, setCategorie] = useState("REGIONAL");
+  const [phaseType, setPhaseType] = useState("SANS_GROUPES");
   const [gouvernorat, setGouvernorat] = useState("");
   const [saison, setSaison] = useState("");
   const [dateDebut, setDateDebut] = useState("");
@@ -116,6 +117,22 @@ export default function CompetitionPage() {
           <option value="CHAMPIONNAT">Championnat</option>
           <option value="TOURNOI">Tournoi</option>
         </select>
+
+        {type === "TOURNOI" && (
+  <select
+    value={phaseType}
+    onChange={(e) => setPhaseType(e.target.value)}
+    className="w-full p-2 border rounded"
+    required
+  >
+    <option value="SANS_GROUPES">
+      🔴 Élimination directe (sans groupes)
+    </option>
+    <option value="AVEC_GROUPES">
+      🟢 Phase de groupes puis élimination
+    </option>
+  </select>
+)}
 
         <select
           value={categorie}

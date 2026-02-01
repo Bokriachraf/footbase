@@ -18,6 +18,11 @@ const matchSchema = new mongoose.Schema({
     enum: ["INDIVIDUEL", "EQUIPE"],
     default: "INDIVIDUEL",
   },
+    type: {
+    type: String,
+    enum: ["AMICAL", "COMPETITION"],
+    default: "AMICAL",
+  },
 
   capitaines: [
   {
@@ -30,8 +35,8 @@ const matchSchema = new mongoose.Schema({
 
   equipes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Equipe" }],
 
-  date: { type: String, required: true },
-  heure: { type: String, required: true },
+  date: { type: String, default: null },
+  heure: { type: String, default: null },
 
   niveau: {
     type: String,
@@ -51,7 +56,18 @@ competition: {
   type: mongoose.Schema.Types.ObjectId,
   ref: "Competition",
 },
-  
+ equipeA: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Equipe",
+},
+equipeB: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Equipe",
+}, 
+vainqueur: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Equipe",
+},
 score: {
   equipeA: Number,
   equipeB: Number,

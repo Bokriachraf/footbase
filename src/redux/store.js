@@ -52,7 +52,10 @@ import {
   invitationSendReducer,
   invitationListMyReducer,
 } from "./reducers/invitationReducers";
-import { competitionDetailsReducer, competitionListReducer } from './reducers/competitionReducers';
+import { competitionDetailsReducer, 
+  competitionListReducer,
+competitionUpdateReducer
+} from './reducers/competitionReducers';
  
 
 export function makeStore(preloadedState = {}) {
@@ -105,7 +108,7 @@ export function makeStore(preloadedState = {}) {
       equipeDetails: equipeDetailsReducer,
       competitionList:competitionListReducer,
       competitionDetails:competitionDetailsReducer,
-
+      competitionUpdate: competitionUpdateReducer,    
 
 
     },

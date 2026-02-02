@@ -9,6 +9,9 @@ import {
   COMPETITION_REGISTER_REQUEST,
   COMPETITION_REGISTER_SUCCESS,
   COMPETITION_REGISTER_FAIL,
+    COMPETITION_UPDATE_FAIL,
+    COMPETITION_UPDATE_SUCCESS,
+    COMPETITION_UPDATE_REQUEST,
 } from "../constants/competitionConstants";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -87,3 +90,63 @@ export const registerEquipeCompetition =
       });
     }
   };
+
+export const updateCompetition = (id, data) => async (dispatch, getState) => {
+  try {
+    dispatch({ type: COMPETITION_UPDATE_REQUEST });
+
+    const { proprietaireSignin } = getState();
+
+    if (!proprietaireSignin || !proprietaireSignin.proprietaireInfo) {
+      throw new Error("Utilisateur non authentifié");
+    }
+
+    const { token } = proprietaireSignin.proprietaireInfo;
+
+    const { data: resData } = await axios.put(
+      `${API}/api/competitions/${id}/update`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    dispatch({
+      type: COMPETITION_UPDATE_SUCCESS,
+      payload: resData,
+    });
+  } catch (error) {
+    dispatch({
+      type: COMPETITION_UPDATE_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
+
+
+//   export const updateCompetition = (id, data) => async (dispatch, getState) => {
+//   try {
+//     dispatch({ type: COMPETITION_UPDATE_REQUEST });
+
+//     const {
+//       footballeurSignin: { footballeurInfo },
+//     } = getState();
+
+//     const { data: resData } = await axios.put(
+//       `/api/competitions/${id}/update`,
+//       data,
+//       {
+//         headers: { Authorization: `Bearer ${footballeurInfo.token}` },
+//       }
+//     );
+
+//     dispatch({ type: COMPETITION_UPDATE_SUCCESS, payload: resData });
+//   } catch (error) {
+//     dispatch({
+//       type: COMPETITION_UPDATE_FAIL,
+//       payload: error.response?.data?.message || error.message,
+//     });
+//   }
+// };

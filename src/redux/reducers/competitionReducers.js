@@ -9,6 +9,9 @@ import {
   COMPETITION_REGISTER_SUCCESS,
   COMPETITION_REGISTER_FAIL,
   COMPETITION_REGISTER_RESET,
+  COMPETITION_UPDATE_FAIL,
+  COMPETITION_UPDATE_SUCCESS,
+  COMPETITION_UPDATE_REQUEST,
 } from "../constants/competitionConstants";
 
 export const competitionListReducer = (
@@ -67,6 +70,22 @@ export const competitionRegisterReducer = (
     case COMPETITION_REGISTER_RESET:
       return {};
 
+    default:
+      return state;
+  }
+};
+
+export const competitionUpdateReducer = (
+  state = {},
+  action
+) => {
+  switch (action.type) {
+    case COMPETITION_UPDATE_REQUEST:
+      return { loading: true };
+    case COMPETITION_UPDATE_SUCCESS:
+      return { loading: false, success: true };
+    case COMPETITION_UPDATE_FAIL:
+      return { loading: false, error: action.payload };
     default:
       return state;
   }

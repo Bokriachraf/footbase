@@ -4,6 +4,7 @@ import expressAsyncHandler from "express-async-handler"
 import { isAuth } from '../utils.js';
 import Equipe from "../models/equipeModel.js";
 import { generateTournamentNoGroup } from "../utils/competitionCalendar.js";
+import Match from "../models/matchModel.js";
 
 const competitionRouter = express.Router();
 
@@ -53,7 +54,11 @@ competitionRouter.get("/:id", async (req, res) => {
       .populate({
         path: "calendrier.matchs.equipeB",
         select: "nom logo",
-      });
+      })
+       .populate({
+    path: "calendrier.matchs.matchId",
+    select: "date heure",
+  });
 
     if (!competition) {
       return res.status(404).json({
@@ -69,6 +74,172 @@ competitionRouter.get("/:id", async (req, res) => {
     });
   }
 });
+
+competitionRouter.put(
+  "/:id/update",
+  isAuth,
+  async (req, res) => {
+    try {
+      const competition = await Competition.findById(req.params.id);
+
+      if (!competition) {
+        return res.status(404).send({ message: "Compétition introuvable" });
+      }
+
+      // 🔐 organisateur uniquement
+      if (
+        competition.organisateur.toString() !== req.user._id.toString()
+      ) {
+        return res
+          .status(403)
+          .send({ message: "Accès réservé à l’organisateur" });
+      }
+
+      const { type, phaseType } = competition;
+      const body = { ...req.body };
+
+      // ❌ champs interdits
+      const forbiddenFields = [
+        "type",
+        "categorie",
+        "organisateur",
+        "phaseType",
+        "status",
+        "classement",
+      ];
+
+      forbiddenFields.forEach((f) => delete body[f]);
+
+      /* ======================================================
+         🧠 TOURNOI — SANS GROUPES
+      ====================================================== */
+      if (type === "TOURNOI" && phaseType === "SANS_GROUPES") {
+        // champs simples
+        ["terrains", "dateDebut", "dateFin", "nbEquipes"].forEach((field) => {
+          if (body[field] !== undefined) {
+            competition[field] = body[field];
+          }
+        });
+
+        /* ========== 🔥 UPDATE MATCHES RÉELS 🔥 ========== */
+        if (Array.isArray(body.calendrier)) {
+          for (const tour of body.calendrier) {
+            for (const match of tour.matchs || []) {
+              if (!match.matchId) continue;
+
+              await Match.findByIdAndUpdate(
+                match.matchId,
+                {
+                  ...(match.date && { date: match.date }),
+                  ...(match.heure && { heure: match.heure }),
+                },
+                { new: true }
+              );
+            }
+          }
+        }
+      }
+
+      await competition.save();
+
+      res.send({
+        message: "Compétition mise à jour avec succès",
+        competition,
+      });
+    } catch (error) {
+      console.error("❌ UPDATE COMPETITION ERROR:", error);
+      res.status(500).send({ message: error.message });
+    }
+  }
+);
+
+
+// competitionRouter.put(
+//   "/:id/update",
+//   isAuth,
+//   async (req, res) => {
+//     const competition = await Competition.findById(req.params.id);
+
+//     if (!competition) {
+//       return res.status(404).send({ message: "Compétition introuvable" });
+//     }
+
+//     // 🔐 organisateur uniquement
+//     if (
+//       competition.organisateur.toString() !== req.user._id.toString()
+//     ) {
+//       return res
+//         .status(403)
+//         .send({ message: "Accès réservé à l’organisateur" });
+//     }
+
+//     const { type, phaseType } = competition;
+//     const body = req.body;
+
+//     // ❌ Champs interdits (global)
+//     const forbiddenFields = [
+//       "type",
+//       "categorie",
+//       "organisateur",
+//       "phaseType",
+//       "status",
+//       "classement",
+//     ];
+
+//     forbiddenFields.forEach((field) => delete body[field]);
+
+//     /* ======================================================
+//        🧠 CAS 1 : TOURNOI — SANS_GROUPES
+//     ====================================================== */
+//     if (type === "TOURNOI" && phaseType === "SANS_GROUPES") {
+//       // ✅ champs autorisés
+//       const allowedFields = [
+//         "terrains",
+//         "dateDebut",
+//         "dateFin",
+//         "nbEquipes",
+//         "equipesInscrites",
+//       ];
+
+//       allowedFields.forEach((field) => {
+//         if (body[field] !== undefined) {
+//           competition[field] = body[field];
+//         }
+//       });
+
+//       /* --------- ⏰ UPDATE CALENDRIER --------- */
+//       if (Array.isArray(body.calendrier)) {
+//         body.calendrier.forEach((tour, tIndex) => {
+//           tour.matchs?.forEach((match, mIndex) => {
+//             const currentMatch =
+//               competition.calendrier[tIndex]?.matchs[mIndex];
+
+//             if (!currentMatch) return;
+
+//             // ✅ uniquement date / heure
+//             if (match.date !== undefined)
+//               currentMatch.date = match.date;
+
+//             if (match.heure !== undefined)
+//               currentMatch.heure = match.heure;
+//           });
+//         });
+//       }
+//     }
+
+//     /* ======================================================
+//        🧠 CAS FUTURS (championnat, groupes, etc.)
+//        else if (type === "CHAMPIONNAT") {}
+//     ====================================================== */
+
+//     await competition.save();
+
+//     res.send({
+//       message: "Compétition mise à jour avec succès",
+//       competition,
+//     });
+//   }
+// );
 
 
 // competitionRouter.get("/:id", async (req, res) => {

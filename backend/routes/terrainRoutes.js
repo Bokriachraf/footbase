@@ -26,13 +26,28 @@ terrainRouter.post(
 );
 
 // 📋 Lister tous les terrains (public)
-terrainRouter.get(
-  "/",
-  expressAsyncHandler(async (req, res) => {
-    const terrains = await Terrain.find().populate("proprietaire", "nom email");
+
+terrainRouter.get("/", isAuth, async (req, res) => {
+  try {
+    const terrains = await Terrain.find({})
+      .populate("proprietaire", "name email")
+      .sort({ createdAt: -1 });
+
     res.send(terrains);
-  })
-);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
+
+
+// terrainRouter.get(
+//   "/",
+//   expressAsyncHandler(async (req, res) => {
+//     const terrains = await Terrain.find().populate("proprietaire", "nom email");
+//     res.send(terrains);
+//   })
+// );
 
 // 📋 Terrains du propriétaire connecté
 terrainRouter.get(

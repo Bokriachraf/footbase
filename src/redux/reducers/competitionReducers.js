@@ -12,6 +12,9 @@ import {
   COMPETITION_UPDATE_FAIL,
   COMPETITION_UPDATE_SUCCESS,
   COMPETITION_UPDATE_REQUEST,
+  COMPETITION_MINE_REQUEST,
+  COMPETITION_MINE_SUCCESS,
+  COMPETITION_MINE_FAIL,
 } from "../constants/competitionConstants";
 
 export const competitionListReducer = (
@@ -86,6 +89,26 @@ export const competitionUpdateReducer = (
       return { loading: false, success: true };
     case COMPETITION_UPDATE_FAIL:
       return { loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+
+export const competitionMineReducer = (
+  state = { competitions: [] },
+  action
+) => {
+  switch (action.type) {
+    case COMPETITION_MINE_REQUEST:
+      return { loading: true, competitions: [] };
+
+    case COMPETITION_MINE_SUCCESS:
+      return { loading: false, competitions: action.payload };
+
+    case COMPETITION_MINE_FAIL:
+      return { loading: false, error: action.payload };
+
     default:
       return state;
   }

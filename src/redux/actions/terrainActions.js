@@ -5,7 +5,10 @@ import {
   TERRAIN_CREATE_FAIL,
   TERRAIN_MINE_REQUEST,
   TERRAIN_MINE_SUCCESS,
-  TERRAIN_MINE_FAIL
+  TERRAIN_MINE_FAIL,
+   TERRAIN_LIST_REQUEST,
+  TERRAIN_LIST_SUCCESS,
+  TERRAIN_LIST_FAIL,
 } from "../constants/terrainConstants";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -20,6 +23,28 @@ export const createTerrain = (terrainData) => async (dispatch, getState) => {
     dispatch({ type: TERRAIN_CREATE_SUCCESS, payload: data });
   } catch (error) {
     dispatch({ type: TERRAIN_CREATE_FAIL, payload: error.response?.data?.message || error.message });
+  }
+};
+
+export const listTerrains = () => async (dispatch, getState) => {
+  try {
+    dispatch({ type: TERRAIN_LIST_REQUEST });
+
+    const { proprietaireSignin } = getState();
+    const { token } = proprietaireSignin.proprietaireInfo;
+
+    const { data } = await Axios.get(`${API}/api/terrains`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    dispatch({ type: TERRAIN_LIST_SUCCESS, payload: data });
+  } catch (error) {
+    dispatch({
+      type: TERRAIN_LIST_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
   }
 };
 

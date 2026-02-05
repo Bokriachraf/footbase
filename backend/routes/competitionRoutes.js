@@ -33,6 +33,26 @@ competitionRouter.get("/", async (req, res) => {
    → Détails d'une compétition
    ===================================================== */
 
+competitionRouter.get(
+  "/mine",
+  isAuth,
+  async (req, res) => {
+    try {
+      const competitions = await Competition.find({
+        organisateur: req.user._id,
+      })
+        .select("nom type dateDebut dateFin terrains")
+        .sort({ createdAt: -1 });
+
+      res.send(competitions);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  }
+);
+
+
+
 competitionRouter.get("/:id", async (req, res) => {
   try {
     const competition = await Competition.findById(req.params.id)
@@ -57,7 +77,11 @@ competitionRouter.get("/:id", async (req, res) => {
       })
        .populate({
     path: "calendrier.matchs.matchId",
-    select: "date heure",
+    select: "date heure terrain",
+    populate: {
+    path: "terrain",
+    select: "nom adresse ville",
+    },
   });
 
     if (!competition) {
@@ -132,6 +156,8 @@ competitionRouter.put(
                 {
                   ...(match.date && { date: match.date }),
                   ...(match.heure && { heure: match.heure }),
+                  ...(match.terrain && { terrain: match.terrain }),
+
                 },
                 { new: true }
               );
@@ -152,6 +178,7 @@ competitionRouter.put(
     }
   }
 );
+
 
 
 // competitionRouter.put(

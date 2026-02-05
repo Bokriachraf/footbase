@@ -45,26 +45,3 @@ export default calendrierSchema;
 
 
 
-// import mongoose from "mongoose";
-
-
-// const calendrierSchema = new mongoose.Schema(
-//   {
-//     tour: {
-//       type: String,
-//       enum: [
-//         "SEIZIEME_DE_FINALE",
-//         "HUITIEME_DE_FINALE",
-//         "QUART_DE_FINALE",
-//         "DEMI_FINALE",
-//         "FINALE",
-//       ],
-//       required: true,
-//     },
-//     matchs: [matchSchema],
-//   },
-//   { _id: false }
-// );
-
-// const Calendrier = mongoose.model("Calendrier", calendrierSchema);
-// export default Calendrier;

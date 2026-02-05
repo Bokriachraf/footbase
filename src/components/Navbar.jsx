@@ -144,7 +144,7 @@ export default function Navbar() {
               animation: "grassNavShimmer 3s ease-in-out infinite"
             }}
           >
-            FootBase
+            kickora
           </motion.span>
         </Link>
 

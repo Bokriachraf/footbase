@@ -3,6 +3,9 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { listMyCompetitions } from "@/redux/actions/competitionActions";
+import { Button } from "@/components/ui/button";
+import { Card , CardContent} from "@/components/ui/card";
 import { 
   listMyTerrains, 
   createTerrain 
@@ -61,6 +64,12 @@ export default function ProprietairePage() {
   const { proprietaireInfo } =
     useSelector((state) => state.proprietaireSignin || {});
 
+  const {
+  competitions = [],
+  loading: competitionsLoading,
+} = useSelector((state) => state.competitionMine || {});
+  
+
   // ---- LOCAL STATES ----
   const [search, setSearch] = useState("");
   const [filterTerrain, setFilterTerrain] = useState("all");
@@ -95,6 +104,7 @@ const [newMatchMode, setNewMatchMode] = useState("INDIVIDUEL");
   useEffect(() => {
     dispatch(listMyTerrains());
     dispatch(listMyMatchs());
+    dispatch(listMyCompetitions());
   }, [dispatch, id]);
 
   // -----------------------------------------------
@@ -316,7 +326,7 @@ const [newMatchMode, setNewMatchMode] = useState("INDIVIDUEL");
               animation: "grassShimmer 4s ease-in-out infinite",
             }}
           >
-            Espace Propriétaire
+            Espace Partenaire
           </h1>
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -325,7 +335,13 @@ const [newMatchMode, setNewMatchMode] = useState("INDIVIDUEL");
               {" • "}
               <span className="font-mono text-green-300">ID: {id}</span>
             </p>
-            
+            <div className="flex justify-center mb-10">
+  <Link href="/competition/create">
+    <Button className="bg-gradient-to-r from-green-500 to-yellow-600 hover:from-green-600 hover:to-yellow-400 text-white px-2 py-1 text-sm shadow-xl">
+      🏆 Créer une nouvelle compétition
+    </Button>
+  </Link>
+</div>
             {/* BOUTONS CRÉATION */}
             <div className="flex gap-3">
               <motion.button
@@ -569,6 +585,56 @@ const [newMatchMode, setNewMatchMode] = useState("INDIVIDUEL");
             </motion.div>
           )}
         </AnimatePresence>
+
+        <motion.div
+  initial={{ opacity: 0, y: 30 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.5 }}
+>
+  <Card className="rounded-2xl bg-white/10 border border-white/20 shadow-2xl backdrop-blur-lg mb-4">
+    <div className="p-6 border-b border-white/10">
+      <h3 className="text-xl font-bold text-purple-200 flex items-center gap-2">
+        🏆 Mes Compétitions
+      </h3>
+    </div>
+
+    <CardContent className="p-0">
+      {competitionsLoading ? (
+        <div className="text-center py-10 text-white/70">
+          Chargement des compétitions...
+        </div>
+      ) : competitions.length === 0 ? (
+        <div className="text-center py-10 text-white/60">
+          Aucune compétition créée
+        </div>
+      ) : (
+        <div className="max-h-80 overflow-y-auto">
+          {competitions.map((competition) => (
+            <Link
+              key={competition._id}
+              href={`/competition/${competition._id}`}
+            >
+              <div className="p-4 border-b border-white/10 hover:bg-white/5 transition cursor-pointer">
+                <div className="flex justify-between items-center">
+                  <span className="text-white font-semibold">
+                    {competition.nom}
+                  </span>
+                  <span className="text-sm text-purple-300">
+                    {competition.type}
+                  </span>
+                </div>
+                <div className="text-xs text-white/50 mt-1">
+                  {competition.dateDebut} → {competition.dateFin}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </CardContent>
+  </Card>
+</motion.div>
+
 
         {/* STATS CARDS */}
         <motion.div

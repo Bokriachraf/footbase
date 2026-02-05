@@ -28,9 +28,16 @@ export default function CompetitionDetailsPage() {
   );
 
   const { footballeurInfo } = useSelector(
-    (state) => state.footballeurSignin
+    (state) => state.footballeurSignin || {}
   );
 
+  const { proprietaireInfo } = useSelector(
+  (state) => state.proprietaireSignin || {}
+);
+
+const isOrganisateur =
+  proprietaireInfo &&
+  competition.organisateur?._id === proprietaireInfo._id;
   const {
     equipes,
     loading: loadingEquipes,
@@ -161,17 +168,27 @@ export default function CompetitionDetailsPage() {
                        ⏳ Date et heure pas encore fixées
                       </div>
                       )}
-
-                     
-                      {/* {hasDate ? (
-                        <div className="text-center text-sm text-green-400">
-                          📅 {match.date} &nbsp; ⏰ {match.heure}
-                        </div>
-                      ) : (
-                        <div className="text-center text-sm text-white/60 italic">
-                          ⏳ Date et heure pas encore fixées
-                        </div>
+   {/* {match.matchId?.terrain  ? (
+                      <div className="text-center text-sm text-green-400">
+                        Terrain : {match.matchId.terrain} 
+                     </div>
+                        ) : (
+                      <div className="text-center text-sm text-white/60 italic">
+                       Le terrain pas encore fixées
+                      </div>
                       )} */}
+{match.matchId?.terrain ? (
+  <div className="text-center text-sm text-green-400">
+    🏟️ {match.matchId.terrain.nom}
+    <br />
+    📍 {match.matchId.terrain.adresse}
+  </div>
+) : (
+  <div className="text-center text-sm text-white/60 italic">
+    Le terrain pas encore fixé
+  </div>
+)}
+                     
                     </div>
                   );
                 })}
@@ -179,6 +196,24 @@ export default function CompetitionDetailsPage() {
             ))}
           </div>
         )}
+
+        {/* ================= ACTION ORGANISATEUR ================= */}
+{isOrganisateur && (
+  <div className="flex justify-center">
+    <button
+      onClick={() =>
+        router.push(`/competition/${competition._id}/update`)
+      }
+      className="px-6 py-3 rounded-xl
+                 bg-gradient-to-r from-blue-500 to-blue-600
+                 text-white font-bold
+                 hover:from-blue-600 hover:to-blue-700
+                 transition"
+    >
+      ✏️ Modifier la compétition
+    </button>
+  </div>
+)}
 
         {/* ================= INSCRIPTION ================= */}
         <button

@@ -12,6 +12,9 @@ import {
     COMPETITION_UPDATE_FAIL,
     COMPETITION_UPDATE_SUCCESS,
     COMPETITION_UPDATE_REQUEST,
+    COMPETITION_MINE_REQUEST,
+  COMPETITION_MINE_SUCCESS,
+  COMPETITION_MINE_FAIL,
 } from "../constants/competitionConstants";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -125,6 +128,34 @@ export const updateCompetition = (id, data) => async (dispatch, getState) => {
   }
 };
 
+
+export const listMyCompetitions = () => async (dispatch, getState) => {
+  try {
+    dispatch({ type: COMPETITION_MINE_REQUEST });
+
+    const { proprietaireSignin } = getState();
+    const { token } = proprietaireSignin.proprietaireInfo;
+
+    const { data } = await axios.get(
+      `${API}/api/competitions/mine`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    dispatch({
+      type: COMPETITION_MINE_SUCCESS,
+      payload: data,
+    });
+  } catch (error) {
+    dispatch({
+      type: COMPETITION_MINE_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
 
 //   export const updateCompetition = (id, data) => async (dispatch, getState) => {
 //   try {

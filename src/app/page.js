@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import StadiumBackground from "@/components/StadiumBackground";
-import KickoraLogo from "@/components/KickoraLogo";
 
 export default function HomePage() {
   const footballeurSignin = useSelector((state) => state.footballeurSignin || {});
@@ -279,7 +278,6 @@ export default function HomePage() {
               </motion.div>
             ))}
           </motion.div>
-             <KickoraLogo/>
           {/* TITRE PRINCIPAL - Version HERBE POUSSANTE */}
           <motion.div
             initial={{ y: 30, opacity: 0 }}

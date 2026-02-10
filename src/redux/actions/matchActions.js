@@ -124,6 +124,34 @@ export const updateMatch = (matchId, updateData) => async (dispatch, getState) =
   }
 };
 
+export const updateMatchScore = (matchId, scoreData) => async (dispatch, getState) => {
+  try {
+    dispatch({ type: MATCH_UPDATE_REQUEST });
+
+    const {
+      proprietaireSignin: { proprietaireInfo },
+    } = getState();
+
+    const { data } = await Axios.patch(
+      `${API}/api/matchs/${matchId}/score`,
+      scoreData,
+      {
+        headers: {
+          Authorization: `Bearer ${proprietaireInfo.token}`,
+        },
+      }
+    );
+
+    dispatch({ type: MATCH_UPDATE_SUCCESS, payload: data.match });
+  } catch (error) {
+    dispatch({
+      type: MATCH_UPDATE_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+    throw error; // 🔥 IMPORTANT pour que ton catch UI fonctionne
+  }
+};
+
 // Delete match (owner)
 export const deleteMatch = (matchId) => async (dispatch, getState) => {
   try {

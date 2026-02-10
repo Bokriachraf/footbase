@@ -18,6 +18,16 @@ const calendrierMatchSchema = new mongoose.Schema(
       ref: "Match", // 🔗 lien vers la collection matches
       default: null,
     },
+     fromMatchA: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Match",
+    default: null,
+  },
+  fromMatchB: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Match",
+    default: null,
+  },
   },
   { _id: false }
 );

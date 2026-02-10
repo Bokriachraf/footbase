@@ -3,7 +3,7 @@ import Match from "../models/matchModel.js";
 const isTerrainOwner = async (req, res, next) => {
   try {
     const match = await Match.findById(req.params.id);
-
+  
     if (!match) {
       return res.status(404).send({ message: "Match introuvable" });
     }

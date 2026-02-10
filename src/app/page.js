@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import StadiumBackground from "@/components/StadiumBackground";
+import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   const footballeurSignin = useSelector((state) => state.footballeurSignin || {});
@@ -403,6 +404,14 @@ export default function HomePage() {
           >
             <div className="backdrop-blur-lg bg-black/20 rounded-2xl p-4 md:p-6">
               <p className="text-base md:text-xl lg:text-2xl text-center text-white/90 leading-relaxed font-medium">
+     <div>         
+ <Link href="/competition">
+    <Button className="bg-gradient-to-r from-green-500 to-yellow-600 hover:from-green-600 hover:to-yellow-400 text-white px-2 py-1 text-sm shadow-xl">
+      🏆 Voir les compétitions
+    </Button>
+  </Link>
+</div>
+
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}

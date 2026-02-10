@@ -286,7 +286,7 @@ matchRouter.get(
 matchRouter.patch(
   "/:id/score",
   isAuth,
-  isTerrainOwner,
+ 
   async (req, res) => {
     const { equipeA, equipeB } = req.body;
 
@@ -350,24 +350,24 @@ matchRouter.patch(
 
 
 
-matchRouter.put('/:id/score', isAuth, isAdmin, async (req, res) => {
-  const match = await Match.findById(req.params.id);
-  if (!match) return res.status(404).send('Match introuvable');
+// matchRouter.put('/:id/score', isAuth, isAdmin, async (req, res) => {
+//   const match = await Match.findById(req.params.id);
+//   if (!match) return res.status(404).send('Match introuvable');
 
-  const { scoreA, scoreB } = req.body;
-  match.scoreFinal = `${scoreA} - ${scoreB}`;
+//   const { scoreA, scoreB } = req.body;
+//   match.scoreFinal = `${scoreA} - ${scoreB}`;
 
-  const [equipeA, equipeB] = await Promise.all([
-    Equipe.findById(match.equipes[0]),
-    Equipe.findById(match.equipes[1]),
-  ]);
+//   const [equipeA, equipeB] = await Promise.all([
+//     Equipe.findById(match.equipes[0]),
+//     Equipe.findById(match.equipes[1]),
+//   ]);
 
-  equipeA.score = scoreA;
-  equipeB.score = scoreB;
-  await Promise.all([equipeA.save(), equipeB.save(), match.save()]);
+//   equipeA.score = scoreA;
+//   equipeB.score = scoreB;
+//   await Promise.all([equipeA.save(), equipeB.save(), match.save()]);
 
-  res.json({ message: 'Score enregistré', match });
-});
+//   res.json({ message: 'Score enregistré', match });
+// });
 
 // 🧮 Mise à jour des moyennes de tous les joueurs après un match
 matchRouter.put(

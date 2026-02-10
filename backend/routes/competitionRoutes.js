@@ -66,7 +66,22 @@ competitionRouter.get("/:id", async (req, res) => {
           select: "name position",
         },
       })
-      // 🔥 AJOUT IMPORTANT
+      .populate({
+  path: "calendrier.matchs.fromMatchA",
+  populate: [
+    { path: "equipeA", select: "nom" },
+    { path: "equipeB", select: "nom" },
+  ],
+})
+.populate({
+  path: "calendrier.matchs.fromMatchB",
+  populate: [
+    { path: "equipeA", select: "nom" },
+    { path: "equipeB", select: "nom" },
+  ],
+})
+
+      
       .populate({
         path: "calendrier.matchs.equipeA",
         select: "nom logo",
@@ -77,11 +92,17 @@ competitionRouter.get("/:id", async (req, res) => {
       })
        .populate({
     path: "calendrier.matchs.matchId",
-    select: "date heure terrain",
-    populate: {
-    path: "terrain",
-    select: "nom adresse ville",
+    select: "date heure terrain proprietaire score scoreFinal",
+    populate: [
+    {
+      path: "terrain",
+      select: "nom adresse ville",
     },
+    {
+      path: "proprietaire",
+      select: "_id name",
+    },
+  ],
   });
 
     if (!competition) {
@@ -180,146 +201,6 @@ competitionRouter.put(
 );
 
 
-
-// competitionRouter.put(
-//   "/:id/update",
-//   isAuth,
-//   async (req, res) => {
-//     const competition = await Competition.findById(req.params.id);
-
-//     if (!competition) {
-//       return res.status(404).send({ message: "Compétition introuvable" });
-//     }
-
-//     // 🔐 organisateur uniquement
-//     if (
-//       competition.organisateur.toString() !== req.user._id.toString()
-//     ) {
-//       return res
-//         .status(403)
-//         .send({ message: "Accès réservé à l’organisateur" });
-//     }
-
-//     const { type, phaseType } = competition;
-//     const body = req.body;
-
-//     // ❌ Champs interdits (global)
-//     const forbiddenFields = [
-//       "type",
-//       "categorie",
-//       "organisateur",
-//       "phaseType",
-//       "status",
-//       "classement",
-//     ];
-
-//     forbiddenFields.forEach((field) => delete body[field]);
-
-//     /* ======================================================
-//        🧠 CAS 1 : TOURNOI — SANS_GROUPES
-//     ====================================================== */
-//     if (type === "TOURNOI" && phaseType === "SANS_GROUPES") {
-//       // ✅ champs autorisés
-//       const allowedFields = [
-//         "terrains",
-//         "dateDebut",
-//         "dateFin",
-//         "nbEquipes",
-//         "equipesInscrites",
-//       ];
-
-//       allowedFields.forEach((field) => {
-//         if (body[field] !== undefined) {
-//           competition[field] = body[field];
-//         }
-//       });
-
-//       /* --------- ⏰ UPDATE CALENDRIER --------- */
-//       if (Array.isArray(body.calendrier)) {
-//         body.calendrier.forEach((tour, tIndex) => {
-//           tour.matchs?.forEach((match, mIndex) => {
-//             const currentMatch =
-//               competition.calendrier[tIndex]?.matchs[mIndex];
-
-//             if (!currentMatch) return;
-
-//             // ✅ uniquement date / heure
-//             if (match.date !== undefined)
-//               currentMatch.date = match.date;
-
-//             if (match.heure !== undefined)
-//               currentMatch.heure = match.heure;
-//           });
-//         });
-//       }
-//     }
-
-//     /* ======================================================
-//        🧠 CAS FUTURS (championnat, groupes, etc.)
-//        else if (type === "CHAMPIONNAT") {}
-//     ====================================================== */
-
-//     await competition.save();
-
-//     res.send({
-//       message: "Compétition mise à jour avec succès",
-//       competition,
-//     });
-//   }
-// );
-
-
-// competitionRouter.get("/:id", async (req, res) => {
-//   try {
-//     const competition = await Competition.findById(req.params.id)
-//       .populate("organisateur", "name email")
-//       .populate("terrains", "nom adresse")
-//       .populate({
-//         path: "equipesInscrites",
-//         select: "nom logo capitaine",
-//         populate: {
-//           path: "capitaine",
-//           select: "name position",
-//         },
-//       });
-
-//     if (!competition) {
-//       return res.status(404).json({
-//         message: "Compétition introuvable",
-//       });
-//     }
-
-//     res.json(competition);
-//   } catch (error) {
-//     console.error("GET competition by id error:", error);
-//     res.status(500).json({
-//       message: "Erreur lors de la récupération de la compétition",
-//     });
-//   }
-// });
-
-
-   // competitionRouter.get("/:id", async (req, res) => {
-//   try {
-//     const competition = await Competition.findById(req.params.id)
-//       .populate("organisateur", "name email")
-//       .populate("terrains", "nom adresse")
-//       .populate("equipesInscrites", "nom logo");
-
-//     if (!competition) {
-//       return res.status(404).json({
-//         message: "Compétition introuvable",
-//       });
-//     }
-
-//     res.json(competition);
-//   } catch (error) {
-//     console.error("GET competition by id error:", error);
-//     res.status(500).json({
-//       message: "Erreur lors de la récupération de la compétition",
-//     });
-//   }
-// });
 
 competitionRouter.post(
   "/",

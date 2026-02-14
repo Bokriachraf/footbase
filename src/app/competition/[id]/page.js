@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-
+import { addMatchScore } from "@/redux/actions/matchActions";
+import { motion, AnimatePresence } from "framer-motion";
 import StadiumBackground from "@/components/StadiumBackground";
 import Loader from "@/components/Loader";
 
@@ -26,7 +27,9 @@ export default function CompetitionDetailsPage() {
   const { competition, loading, error } = useSelector(
     (state) => state.competitionDetails
   );
-
+const { loading: loadingScore } = useSelector(
+  (state) => state.matchAddScore || {}
+);
   const { footballeurInfo } = useSelector(
     (state) => state.footballeurSignin || {}
   );
@@ -103,12 +106,14 @@ const submitScore = async () => {
   }
 
   try {
-    await dispatch(
-      updateMatchScore(selectedMatch.matchId._id, {
-        equipeA: Number(scoreA),
-        equipeB: Number(scoreB),
-      })
-    );
+   await dispatch(
+  addMatchScore({
+    matchId: selectedMatch.matchId._id,
+    scoreA: Number(scoreA),
+    scoreB: Number(scoreB),
+  })
+);
+
 
     toast.success("✅ Score enregistré");
     setShowScoreModal(false);
@@ -272,6 +277,7 @@ const renderEquipe = (equipe, fromMatch) => {
                   // const hasDate = match.date && match.heure;
                    const hasDate = match.matchId?.date && match.matchId?.heure;
                   return (
+                    
                     <div
                       key={i}
                       className="bg-black/40 p-4 rounded-xl space-y-2"
@@ -346,8 +352,66 @@ const renderEquipe = (equipe, fromMatch) => {
                                  Le terrain pas encore fixé
                                </div>
                             )}  
+
+
+{/* SCORE AFFICHÉ */}
+{match.matchId?.score && (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, ease: "easeOut" }}
+    className="mt-4 flex justify-center px-3"
+  >
+    <div className="relative w-full max-w-sm rounded-2xl overflow-hidden bg-gradient-to-b from-black/80 via-black/60 to-black/80 border border-green-500/30 shadow-[0_0_25px_rgba(34,197,94,0.25)] backdrop-blur-md">
+      <div className="relative px-4 py-3">
+        
+        {/* NOMS DES ÉQUIPES */}
+        <div className="flex justify-between items-center text-xs text-white/80 font-semibold">
+          <span className="truncate max-w-[40%]">
+            {renderEquipe(match.equipeA, match.fromMatchA)}
+          </span>
+
+          <span className="text-green-400 text-[10px] uppercase tracking-widest">
+            Match terminé
+          </span>
+
+          <span className="truncate max-w-[40%] text-right">
+            {renderEquipe(match.equipeB, match.fromMatchB)}
+          </span>
+        </div>
+
+        {/* SCORE */}
+        <div className="mt-3 flex items-center justify-center gap-6">
+          <span className="text-white text-4xl font-extrabold">
+            {match.matchId.score.equipeA}
+          </span>
+
+          <span className="text-green-400 text-2xl font-bold">:</span>
+
+          <span className="text-white text-4xl font-extrabold">
+            {match.matchId.score.equipeB}
+          </span>
+        </div>
+
+        {/* RÉSULTAT */}
+        <p className="mt-2 text-center text-xs text-white/70">
+          {match.matchId.score.equipeA >
+          match.matchId.score.equipeB
+            ? `🏆 Victoire ${renderEquipe(match.equipeA, match.fromMatchA)}`
+            : match.matchId.score.equipeA <
+              match.matchId.score.equipeB
+            ? `🏆 Victoire ${renderEquipe(match.equipeB, match.fromMatchB)}`
+            : "🤝 Match nul"}
+        </p>
+      </div>
+    </div>
+  </motion.div>
+)}
+
+
+
                             {isMatchOwner(match) &&
-  hasMatchStarted(match) && (
+  hasMatchStarted(match) && !match.matchId?.score && (
     <div className="flex justify-center pt-2">
       <button
         onClick={() => openScoreModal(match)}
@@ -359,6 +423,7 @@ const renderEquipe = (equipe, fromMatch) => {
         ➕ Ajouter le score
       </button>
     </div>
+    
 )}
      
           
@@ -439,12 +504,17 @@ const renderEquipe = (equipe, fromMatch) => {
         />
       </div>
 
-      <button
-        onClick={submitScore}
-        className="w-full py-2 rounded-lg bg-green-500 text-black font-bold"
-      >
-        ✅ Valider le score
-      </button>
+     <button
+  onClick={submitScore}
+  disabled={loadingScore}
+  className={`w-full py-2 rounded-lg font-bold ${
+    loadingScore
+      ? "bg-gray-500 cursor-not-allowed"
+      : "bg-green-500 text-black"
+  }`}
+>
+  {loadingScore ? "Enregistrement..." : "✅ Valider le score"}
+</button>
 
       <button
         onClick={() => setShowScoreModal(false)}

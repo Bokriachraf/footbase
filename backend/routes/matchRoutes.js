@@ -8,6 +8,7 @@ import Evaluation from "../models/evaluationModel.js";
 import Footballeur from "../models/footballeurModel.js";
 import isTerrainOwner from "../middlewares/isTerrainOwner.js";
 import { isAuth , isAdmin} from "../utils.js";
+import Competition from "../models/competitionModel.js";
 
 const matchRouter = express.Router();
 
@@ -283,70 +284,364 @@ matchRouter.get(
   })
 );
 
+
 matchRouter.patch(
   "/:id/score",
   isAuth,
- 
   async (req, res) => {
-    const { equipeA, equipeB } = req.body;
+    try {
+      const { equipeA, equipeB } = req.body;
 
-    const match = await Match.findById(req.params.id).populate({
-      path: "equipes",
-      populate: {
-        path: "joueurs",
-      },
-    });
+      /* ================== 1️⃣ MATCH ACTUEL ================== */
+      const match = await Match.findById(req.params.id).populate({
+        path: "equipes",
+        populate: { path: "joueurs" },
+      });
 
-    if (!match) {
-      return res.status(404).json({ message: "Match introuvable" });
+      if (!match) {
+        return res.status(404).json({ message: "Match introuvable" });
+      }
+
+      if (match.equipes.length !== 2) {
+        return res
+          .status(400)
+          .json({ message: "Match incomplet (équipes manquantes)" });
+      }
+
+      if (match.scoreFinal) {
+        return res
+          .status(400)
+          .json({ message: "Score déjà enregistré" });
+      }
+
+      /* ================== 2️⃣ SCORE ================== */
+      match.score = { equipeA, equipeB };
+      match.scoreFinal = true;
+
+      if (equipeA > equipeB) {
+        match.vainqueur = match.equipes[0]._id;
+      } else if (equipeB > equipeA) {
+        match.vainqueur = match.equipes[1]._id;
+      } else {
+        match.vainqueur = null;
+      }
+
+      /* ================== 3️⃣ POINTS JOUEURS ================== */
+      let pointsA = 0;
+      let pointsB = 0;
+
+      if (equipeA > equipeB) pointsA = 3;
+      else if (equipeB > equipeA) pointsB = 3;
+      else {
+        pointsA = 1;
+        pointsB = 1;
+      }
+
+      for (const joueur of match.equipes[0].joueurs) {
+        joueur.matchPoints.push(pointsA);
+        await joueur.save();
+      }
+
+      for (const joueur of match.equipes[1].joueurs) {
+        joueur.matchPoints.push(pointsB);
+        await joueur.save();
+      }
+
+      await match.save();
+
+      /* ================== 4️⃣ MATCH SUIVANT ================== */
+      if (match.competition && match.vainqueur) {
+        const competition = await Competition.findById(match.competition);
+
+        let nextMatchId = null;
+        let sourceKey = null;
+
+        for (const tour of competition.calendrier) {
+          for (const m of tour.matchs) {
+            if (m.fromMatchA?.toString() === match._id.toString()) {
+              nextMatchId = m.matchId;
+              sourceKey = "A";
+            }
+            if (m.fromMatchB?.toString() === match._id.toString()) {
+              nextMatchId = m.matchId;
+              sourceKey = "B";
+            }
+          }
+        }
+
+        if (nextMatchId) {
+          const nextMatch = await Match.findById(nextMatchId);
+
+          if (sourceKey === "A") nextMatch.equipeA = match.vainqueur;
+          if (sourceKey === "B") nextMatch.equipeB = match.vainqueur;
+
+          /* ===== 🔥 SYNC ÉQUIPES + JOUEURS ===== */
+          if (nextMatch.equipeA && nextMatch.equipeB) {
+            const equipes = await Equipe.find({
+              _id: { $in: [nextMatch.equipeA, nextMatch.equipeB] },
+            });
+
+            nextMatch.equipes = equipes.map((e) => e._id);
+            nextMatch.joueurs = equipes.flatMap((e) => e.joueurs);
+          }
+
+          await nextMatch.save();
+
+          /* ===== 5️⃣ MAJ CALENDRIER ===== */
+          for (const tour of competition.calendrier) {
+            for (const m of tour.matchs) {
+              if (m.matchId.toString() === nextMatch._id.toString()) {
+                if (sourceKey === "A") m.equipeA = match.vainqueur;
+                if (sourceKey === "B") m.equipeB = match.vainqueur;
+              }
+            }
+          }
+
+          await competition.save();
+        }
+      }
+
+      /* ================== 6️⃣ RESPONSE ================== */
+      res.json({
+        message: "Score ajouté avec succès",
+        match,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: error.message });
     }
-
-    if (match.equipes.length !== 2) {
-      return res.status(400).json({ message: "Match incomplet (équipes manquantes)" });
-    }
-
-    // 🔒 empêcher double saisie
-    if (match.scoreFinal === true) {
-      return res.status(400).json({ message: "Score déjà enregistré" });
-    }
-
-    match.score = { equipeA, equipeB };
-    match.scoreFinal = true;
-
-    let pointsA = 0;
-    let pointsB = 0;
-
-    if (equipeA > equipeB) {
-      pointsA = 3;
-      pointsB = 0;
-    } else if (equipeA < equipeB) {
-      pointsA = 0;
-      pointsB = 3;
-    } else {
-      pointsA = 1;
-      pointsB = 1;
-    }
-
-    // ✅ joueurs équipe A
-    for (const joueur of match.equipes[0].joueurs) {
-      joueur.matchPoints.push(pointsA);
-      await joueur.save();
-    }
-
-    // ✅ joueurs équipe B
-    for (const joueur of match.equipes[1].joueurs) {
-      joueur.matchPoints.push(pointsB);
-      await joueur.save();
-    }
-
-    await match.save();
-
-    res.json({
-      message: "Score ajouté avec succès",
-      match,
-    });
   }
 );
+
+
+// matchRouter.patch(
+//   "/:id/score",
+//   isAuth,
+//   async (req, res) => {
+//     try {
+//       const { equipeA, equipeB } = req.body;
+
+//       /* ================== 1️⃣ MATCH ACTUEL ================== */
+//       const match = await Match.findById(req.params.id)
+//         .populate({
+//           path: "equipes",
+//           populate: { path: "joueurs" },
+//         });
+
+//       if (!match) {
+//         return res.status(404).json({ message: "Match introuvable" });
+//       }
+
+//       if (match.equipes.length !== 2) {
+//         return res
+//           .status(400)
+//           .json({ message: "Match incomplet (équipes manquantes)" });
+//       }
+
+//       if (match.scoreFinal) {
+//         return res
+//           .status(400)
+//           .json({ message: "Score déjà enregistré" });
+//       }
+
+//       /* ================== 2️⃣ SCORE ================== */
+//       match.score = { equipeA, equipeB };
+//       match.scoreFinal = true;
+
+//       if (equipeA > equipeB) {
+//         match.vainqueur = match.equipes[0]._id;
+//       } else if (equipeB > equipeA) {
+//         match.vainqueur = match.equipes[1]._id;
+//       } else {
+//         match.vainqueur = null; // match nul
+//       }
+
+//       /* ================== 3️⃣ POINTS JOUEURS ================== */
+//       let pointsA = 0;
+//       let pointsB = 0;
+
+//       if (equipeA > equipeB) {
+//         pointsA = 3;
+//       } else if (equipeB > equipeA) {
+//         pointsB = 3;
+//       } else {
+//         pointsA = 1;
+//         pointsB = 1;
+//       }
+
+//       for (const joueur of match.equipes[0].joueurs) {
+//         joueur.matchPoints.push(pointsA);
+//         await joueur.save();
+//       }
+
+//       for (const joueur of match.equipes[1].joueurs) {
+//         joueur.matchPoints.push(pointsB);
+//         await joueur.save();
+//       }
+
+//       await match.save();
+
+//       /* ================== 4️⃣ MATCH SUIVANT ================== */
+//       if (match.competition && match.vainqueur) {
+//         const competition = await Competition.findById(match.competition);
+
+//         let nextMatchId = null;
+
+//         for (const tour of competition.calendrier) {
+//           for (const m of tour.matchs) {
+//             if (
+//               m.fromMatchA?.toString() === match._id.toString() ||
+//               m.fromMatchB?.toString() === match._id.toString()
+//             ) {
+//               nextMatchId = m.matchId;
+//             }
+//           }
+//         }
+
+//         if (nextMatchId) {
+//           const nextMatch = await Match.findById(nextMatchId);
+
+//           if (nextMatch) {
+//             if (nextMatch.equipeA == null) {
+//               nextMatch.equipeA = match.vainqueur;
+//             } else if (nextMatch.equipeB == null) {
+//               nextMatch.equipeB = match.vainqueur;
+//             }
+
+//             await nextMatch.save();
+
+//             /* ===== 5️⃣ MAJ CALENDRIER ===== */
+//             for (const tour of competition.calendrier) {
+//               for (const m of tour.matchs) {
+//                 if (m.matchId.toString() === nextMatch._id.toString()) {
+//                   if (
+//                     m.fromMatchA?.toString() === match._id.toString()
+//                   ) {
+//                     m.equipeA = match.vainqueur;
+//                   }
+//                   if (
+//                     m.fromMatchB?.toString() === match._id.toString()
+//                   ) {
+//                     m.equipeB = match.vainqueur;
+//                   }
+//                 }
+//               }
+//             }
+
+//             await competition.save();
+//           }
+//         }
+//       }
+
+//       /* ================== 6️⃣ RESPONSE ================== */
+//       res.json({
+//         message: "Score ajouté avec succès",
+//         match,
+//       });
+//     } catch (error) {
+//       console.error(error);
+//       res.status(500).json({ message: error.message });
+//     }
+//   }
+// );
+
+
+
+// matchRouter.patch(
+//   "/:id/score",
+//   isAuth,
+ 
+//   async (req, res) => {
+//     const { equipeA, equipeB } = req.body;
+
+//     const match = await Match.findById(req.params.id).populate({
+//       path: "equipes",
+//       populate: {
+//         path: "joueurs",
+//       },
+//     });
+
+//     if (!match) {
+//       return res.status(404).json({ message: "Match introuvable" });
+//     }
+
+//     if (match.equipes.length !== 2) {
+//       return res.status(400).json({ message: "Match incomplet (équipes manquantes)" });
+//     }
+
+//     // 🔒 empêcher double saisie
+//     if (match.scoreFinal === true) {
+//       return res.status(400).json({ message: "Score déjà enregistré" });
+//     }
+
+//     match.score = { equipeA, equipeB };
+//     match.scoreFinal = true;
+
+    
+// // 2️⃣ Déterminer le vainqueur
+// if (equipeA > equipeB) {
+//   match.vainqueur = match.equipes[0];
+// } else if (equipeB > equipeA) {
+//   match.vainqueur = match.equipes[1];
+// } else {
+//   match.vainqueur = null; // match nul (à gérer selon ton business)
+// }
+
+//     let pointsA = 0;
+//     let pointsB = 0;
+
+//     if (equipeA > equipeB) {
+//       pointsA = 3;
+//       pointsB = 0;
+//     } else if (equipeA < equipeB) {
+//       pointsA = 0;
+//       pointsB = 3;
+//     } else {
+//       pointsA = 1;
+//       pointsB = 1;
+//     }
+
+//     // ✅ joueurs équipe A
+//     for (const joueur of match.equipes[0].joueurs) {
+//       joueur.matchPoints.push(pointsA);
+//       await joueur.save();
+//     }
+
+//     // ✅ joueurs équipe B
+//     for (const joueur of match.equipes[1].joueurs) {
+//       joueur.matchPoints.push(pointsB);
+//       await joueur.save();
+//     }
+
+//     await match.save();
+
+//     // Chercher un match qui dépend de celui-ci
+// const nextMatch = await Match.findOne({
+//   $or: [
+//     { fromMatchA: match._id },
+//     { fromMatchB: match._id },
+//   ],
+// });
+
+// if (nextMatch && match.vainqueur) {
+//   if (nextMatch.fromMatchA?.toString() === match._id.toString()) {
+//     nextMatch.equipes[0] = match.vainqueur;
+//   }
+
+//   if (nextMatch.fromMatchB?.toString() === match._id.toString()) {
+//     nextMatch.equipes[1] = match.vainqueur;
+//   }
+
+//   await nextMatch.save();
+// }
+
+
+//     res.json({
+//       message: "Score ajouté avec succès",
+//       match,
+//     });
+//   }
+// );
 
 
 

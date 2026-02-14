@@ -313,7 +313,7 @@ export default function HomePage() {
                   animation: "grassShimmerEnhanced 3s ease-in-out infinite",
                 }}
               >
-                kickora
+                kickoora
               </motion.h1>
               
               {/* Effet de brins d'herbe individuels */}
@@ -708,7 +708,7 @@ export default function HomePage() {
                 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-6 md:mb-8"
               >
                 <span className="bg-gradient-to-r from-green-300 via-yellow-300 to-green-300 bg-clip-text text-transparent">
-                  Kickora Pro
+                  Kickoora Pro
                 </span>
               </motion.h2>
 
